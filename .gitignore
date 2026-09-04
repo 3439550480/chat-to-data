@@ -1,0 +1,18 @@
+# ===== 构建产物（make 一次就能回来的东西不进 git）=====
+# 所有 build 目录（网关/用户子服务/data/proto/test 各处的 cmake 构建目录）
+build/
+
+# ===== 代码生成物（由工具链从源头再生）=====
+# ODB 编译器生成：源码是 data/*Entity.h，产物可再生
+app/data/odb/
+app/data/sql/
+# protoc 生成：源码是 proto/*.proto，产物可再生
+app/proto/protoCode/
+
+# ===== AI 工作区数据（个人工作记忆/临时抽取，非项目代码）=====
+.workbuddy/
+
+# ===== 常规编译中间文件（防 build 外散落的中间产物）=====
+*.o
+*.d
+*.tmp

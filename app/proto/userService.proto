@@ -1,0 +1,168 @@
+syntax = "proto3";                   // 指定使用 proto3 语法版本
+package chat2Data.userService;       // 定义包名，类似于C++中的命名空间
+option cc_generic_services = true;   // 生成 RPC 服务类（brpc 泛化服务必需）
+
+// 用户服务接口定义
+//////////////////////// 检测昵称是否唯一 ////////////////////////
+message ValidNicknameRequest {
+    string request_id = 1;       // 请求id
+    string nickname = 2;         // 昵称
+}
+message ValidNicknameResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+//////////////////////// 检测邮箱是否唯一 ////////////////////////
+message ValidEmailRequest {
+    string request_id = 1;       // 请求id
+    string email = 2;            // 邮箱
+}
+message ValidEmailResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+//////////////////////// 用户注册 ////////////////////////
+message UserRegisterRequest {
+    string request_id = 1;       // 请求id
+    string nickname = 2;         // 昵称
+    string password = 3;         // 密码
+    string email = 4;            // 邮箱
+}
+message UserRegisterResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+//////////////////////// 会话登录 ////////////////////////
+message SessionLoginRequest {
+    string request_id = 1;       // 请求id
+    string session_id = 2;       // 会话id
+}
+message SessionLoginResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+//////////////////////// 密码登录 ////////////////////////
+message PasswdLoginRequest {
+    string request_id = 1;       // 请求id
+    string username = 2;         // 用户名（邮箱或昵称）
+    string password = 3;         // 密码
+}
+message PasswdLoginResult {
+    string session_id = 1;       // 会话id
+}
+message PasswdLoginResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+    PasswdLoginResult result = 4;// 登录结果
+}
+
+//////////////////////// 获取验证码 ////////////////////////
+message GetCodeRequest {
+    string request_id = 1;       // 请求id
+    string email = 2;            // 邮箱
+}
+message GetCodeResult {
+    string code_id = 1;          // 验证码id
+}
+message GetCodeResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+    GetCodeResult result = 4;    // 获取验证码结果
+}
+
+//////////////////////// 邮箱验证码登录 ////////////////////////
+message VcodeLoginRequest {
+    string request_id = 1;       // 请求id
+    string email = 2;            // 邮箱
+    string verify_code = 3;      // 验证码
+    string code_id = 4;          // 验证码id
+}
+message VcodeLoginResult {
+    string session_id = 1;       // 会话id
+}
+message VcodeLoginResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+    VcodeLoginResult result = 4; // 登录结果
+}
+
+//////////////////////// 退出登录 ////////////////////////
+message LogoutRequest {
+    string request_id = 1;       // 请求id
+    string session_id = 2;       // 会话id
+}
+message LogoutResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+//////////////////////// 获取用户信息 ////////////////////////
+message GetUserInfoRequest {
+    string request_id = 1;       // 请求id
+    string session_id = 2;       // 会话id
+    string user_id = 3;          // 用户id
+}
+// 用户信息
+message UserInfo {
+    string user_id = 1;     // 用户id
+    string nickname = 2;    // 昵称
+    string email = 3;       // 邮箱
+}
+message GetUserInfoResult {
+    UserInfo user_info = 1;     // 用户信息
+}
+message GetUserInfoResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+    GetUserInfoResult result = 4;// 用户信息结果
+}
+
+//////////////////////// 检查会话是否有效 ////////////////////////
+message IsSessionValidRequest {
+    string request_id = 1;       // 请求id
+    string session_id = 2;       // 会话id
+}
+message IsSessionValidResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+    bool is_valid = 4;           // 会话是否有效
+    string user_id = 5;          // 用户ID
+}
+
+/////////////////////////////////// 用户服务RPC定义 ///////////////////////////////////
+service UserService {
+    // 检测昵称是否唯一
+    rpc ValidNickname(ValidNicknameRequest) returns (ValidNicknameResponse);
+    // 检测邮箱是否唯一
+    rpc ValidEmail(ValidEmailRequest) returns (ValidEmailResponse);
+    // 用户注册
+    rpc UserRegister(UserRegisterRequest) returns (UserRegisterResponse);
+    // 会话登录
+    rpc SessionLogin(SessionLoginRequest) returns (SessionLoginResponse);
+    // 密码登录
+    rpc PasswdLogin(PasswdLoginRequest) returns (PasswdLoginResponse);
+    // 获取验证码
+    rpc GetCode(GetCodeRequest) returns (GetCodeResponse);
+    // 邮箱验证码登录
+    rpc VcodeLogin(VcodeLoginRequest) returns (VcodeLoginResponse);
+    // 退出登录
+    rpc Logout(LogoutRequest) returns (LogoutResponse);
+    // 获取用户信息
+    rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+    // 检查会话是否有效
+    rpc IsSessionValid(IsSessionValidRequest) returns (IsSessionValidResponse);
+}

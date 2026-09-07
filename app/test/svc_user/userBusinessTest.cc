@@ -14,6 +14,11 @@
 #include "../../data/verifyCodeData.h"
 #include "../../svc_userService/sessionManager.h"
 
+// 测试二进制独立于主程序 main.cc，gflags 变量须在此定义
+// （userBusiness.h 只 DECLARE；名字与主程序一致，详见课件问题㉓）
+DEFINE_string(notify_service, "NotifyService", "验证码邮件要调用的通知子服务名称");
+DEFINE_string(db_service, "DatabaseService", "登出时要调用的数据库子服务名称");
+
 using namespace userService;
 
 int main(int argc, char** argv) {
@@ -44,8 +49,13 @@ public:
         _sessionData = std::make_shared<SessionData>(db, redis);
         _verifyCodeData = std::make_shared<VerifyCodeData>(redis);
         _sessionManager = std::make_shared<SessionManager>(_sessionData.get());
+        // N9：注入真实 SvcChannels（测试环境无 etcd watcher，addNode 直塞在册地址，
+        // 语义与 watcher 回调等价；前提是 NotifyService 已运行）
+        _svcChannels = std::make_shared<biterpc::SvcChannels>();
+        _svcChannels->setWatch("NotifyService");
+        _svcChannels->addNode("NotifyService", "dev-env-service:9002");
         _biz = std::make_shared<UserBusiness>(_sessionManager, _verifyCodeData,
-                                              _userData, nullptr);
+                                              _userData, _svcChannels);
     }
 
     std::shared_ptr<UserBusiness> biz() { return _biz; }
@@ -56,6 +66,7 @@ private:
     std::shared_ptr<SessionData> _sessionData;      // SessionManager 裸指针借用的所有权在装配层
     std::shared_ptr<VerifyCodeData> _verifyCodeData;
     std::shared_ptr<SessionManager> _sessionManager;
+    biterpc::SvcChannels::ptr _svcChannels;         // 跨服务通道（GetCodeE2E 用）
     std::shared_ptr<UserBusiness> _biz;
 };
 
@@ -171,4 +182,21 @@ TEST(UserBusinessTest, VerifyCodeGhostEmail) {
     EXPECT_THROW({
         env.biz()->loginWithVerifyCode(ghostEmail, "fake_code_id", "123456");
     }, chat2Data::Chat2DataException);
+}
+
+// 7. N9 端到端：getVerifyCode 全链路（存缓存 + RPC 调通知子服务）
+// 前提：NotifyService 已运行。邮件真实发送因授权码为空会失败，
+// 但那发生在通知侧异步线程里，不影响本链路的 RPC 语义验证
+TEST(UserBusinessTest, GetCodeE2E) {
+    BizEnv env;
+    std::string email = "e2e_" + chat2Data::Utils::generateUuid().substr(0, 6) + "@x.com";
+    // 全链路：生成 + 存缓存 + RPC 发送请求 → 返回 codeId
+    std::string codeId;
+    EXPECT_NO_THROW({ codeId = env.biz()->getVerifyCode(email); });
+    EXPECT_FALSE(codeId.empty());
+    // 验证码信息确实落了缓存（登录环节要用）
+    auto saved = env.verifyCodeData()->getVerifyCodeFromCache(codeId);
+    ASSERT_TRUE(saved.has_value());
+    EXPECT_EQ(saved->_email, email);
+    EXPECT_EQ(saved->_verifyCode.size(), 6);   // 6位纯数字
 }

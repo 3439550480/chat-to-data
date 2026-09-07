@@ -28,6 +28,10 @@ DEFINE_int32(redis_pool_size, 16, "Redis连接池大小");
 // 要监听的服务名称
 DEFINE_string(notify_services, "NotifyService", "需要监听的通知子服务名称");
 DEFINE_string(database_services, "DatabaseService", "需要监听的数据库子服务名称");
+// 跨服务调用目标（课件问题㉓修复：区别于上面的 watch 列表——watch 是发现并缓存节点，
+// 这两个是业务层取节点时的 key，名字必须与各服务注册名一致）
+DEFINE_string(notify_service, "NotifyService", "验证码邮件要调用的通知子服务名称");
+DEFINE_string(db_service, "DatabaseService", "登出时要调用的数据库子服务名称");
 // 日志配置
 DEFINE_bool(log_async, false, "是否启用异步日志");
 DEFINE_int32(log_level, 2, "日志输出等级: 1-debug;2-info;3-warn;4-error;6-off");

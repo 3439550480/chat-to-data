@@ -67,6 +67,7 @@ add_executable(userBusinessTest
     ../../data/odb/sessionEntity-odb.cxx
     ../../svc_userService/sessionManager.cc
     ../../svc_userService/userBusiness.cc
+    ../../proto/protoCode/notifyService.pb.cc   # N9：getVerifyCode 调通知子服务所需
     ../../common/utils.cpp
     ../../common/errorHandler.cpp   # Chat2DataException 实现
 )

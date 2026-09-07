@@ -1,11 +1,12 @@
 #include <random>
 #include <crypt.h>
+#include <brpc/controller.h>
 #include <bite_scaffold/log.h>
 #include <bite_scaffold/util.h>
 #include "userBusiness.h"
-// 课件问题⑪：以下两个 include 暂缓——proto 生成物尚未建立（notifyService/dbService），
-// 桩阶段不调用它们；待 proto 编译体系就绪 + 桩转真实现时恢复
-// #include "../proto/protoCode/notifyService.pb.h"
+// 课件问题⑪回收：notifyService proto 已建（13章），include 恢复；
+// dbService 仍注释留档，待 14 章建 proto 后恢复
+#include "../proto/protoCode/notifyService.pb.h"
 // #include "../proto/protoCode/dbService.pb.h"
 #include "../common/utils.h"
 #include "../common/errorHandler.h"
@@ -86,11 +87,48 @@ std::string UserBusiness::loginWithPassword(const std::string& username,
     return sessionId;
 }
 
-// 生成验证码（桩：等通知子服务完成后完善——生成 codeId+随机码 → 存缓存 → 调 notify 发邮件）
+// 生成验证码：生成 codeInfo → 存缓存 → RPC 调通知子服务发邮件（课件问题⑪回收）
+// @return codeId
+// @throws USER_SAVE_VERIFY_CODE_FAILED / NOTIFY_SEND_FAILED
 std::string UserBusiness::getVerifyCode(const std::string& email) {
-    // ...
-    // 等通知子服务实现完成之后再完善
-    return "";
+    // 1. 创建验证码信息（6位纯数字，5分钟有效）
+    VerifyCodeInfo codeInfo;
+    codeInfo._codeId = chat2Data::Utils::generateUuid();
+    codeInfo._email = email;
+    codeInfo._verifyCode = biteutil::Random::code(6, biteutil::DIGIT);
+    auto now = std::time(nullptr);
+    codeInfo._createTime = std::to_string(now);
+    // 2. 保存验证码信息到缓存（Redis，TTL 5min，用后即删）
+    bool saveResult = _verifyCodeData->saveVerifyCodeToCache(codeInfo);
+    if (!saveResult) {
+        throw chat2Data::Chat2DataException(chat2Data::ErrorCode::USER_SAVE_VERIFY_CODE_FAILED);
+    }
+    // 3. 获取 NotifyService 的 channel（服务发现：watcher 已把在线节点灌入）
+    auto channel = _svcChannels->getNode(FLAGS_notify_service);
+    if (!channel) {
+        throw chat2Data::Chat2DataException(chat2Data::ErrorCode::NOTIFY_SEND_FAILED);
+    }
+    // 4. 创建发送验证码的 rpc 请求
+    chat2Data::notifyService::SendVerifyCodeRequest request;
+    request.set_request_id(codeInfo._codeId);
+    request.set_email(email);
+    request.set_code(codeInfo._verifyCode);
+    // 5. 创建通知子服务的 rpc 客户端
+    chat2Data::notifyService::SendVerifyCodeResponse response;
+    brpc::Controller controller;
+    chat2Data::notifyService::NotifyService_Stub stub(channel.get());
+    // 6. 发起同步 rpc 调用（nullptr=无回调，同步等响应；必须等"任务已受理"才能返回 codeId）
+    stub.SendVerifyCode(&controller, &request, &response, nullptr);
+    // 7. 检测 rpc 调用是否成功（通信失败 / 业务错误码 分开判）
+    if (controller.Failed()) {
+        ERR("RPC to NotifyService failed: {}", controller.ErrorText());
+        throw chat2Data::Chat2DataException(chat2Data::ErrorCode::NOTIFY_SEND_FAILED);
+    }
+    if (response.error_code() != 0) {
+        throw chat2Data::Chat2DataException(static_cast<chat2Data::ErrorCode>(response.error_code()));
+    }
+    INF("Verification code generated: codeId={}, email={}", codeInfo._codeId, email);
+    return codeInfo._codeId;
 }
 
 // 验证码登录

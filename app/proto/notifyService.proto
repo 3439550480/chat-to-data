@@ -1,0 +1,37 @@
+syntax = "proto3";                   // 指定使用 proto3 语法版本
+package chat2Data.notifyService;     // 定义包名，类似于C++中的命名空间
+option cc_generic_services = true;   // 生成 RPC 服务类（brpc 泛化服务必需）
+
+// 通知服务接口定义
+//////////////////////// 发送验证码邮件 ////////////////////////
+message SendVerifyCodeRequest {
+    string request_id = 1;       // 请求id
+    string email = 2;            // 收件人邮箱
+    string code = 3;             // 验证码
+}
+message SendVerifyCodeResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+//////////////////////// 发送普通邮件 ////////////////////////
+message SendEmailRequest {
+    string request_id = 1;       // 请求id
+    string to_email = 2;         // 收件人邮箱
+    string subject = 3;          // 邮件主题
+    string content = 4;          // 邮件内容（HTML格式）
+}
+message SendEmailResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+}
+
+/////////////////////////////////// 通知服务RPC定义 ///////////////////////////////////
+service NotifyService {
+    // 发送验证码邮件
+    rpc SendVerifyCode(SendVerifyCodeRequest) returns (SendVerifyCodeResponse);
+    // 发送普通邮件
+    rpc SendEmail(SendEmailRequest) returns (SendEmailResponse);
+}

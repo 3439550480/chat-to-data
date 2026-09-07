@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME}
     userBusiness.cc
     sessionManager.cc
     ../proto/protoCode/userService.pb.cc
+    ../proto/protoCode/notifyService.pb.cc   # N9：getVerifyCode 调通知子服务所需
     ../data/userData.cc
     ../data/sessionData.cc
     ../data/verifyCodeData.cc

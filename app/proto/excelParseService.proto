@@ -1,0 +1,64 @@
+syntax = "proto3";                   // 指定使用 proto3 语法版本
+package chat2Data.excelParseService; // 定义包名，类似于C++中的命名空间
+option cc_generic_services = true;   // 生成 RPC 服务类（brpc 泛化服务必需）
+
+// Excel解析服务接口定义（内部服务：供文件子服务调用，不与网关交互）
+//////////////////////// 获取工作表列表 ////////////////////////
+message GetWorksheetsRequest {
+    string request_id = 1;       // 请求id
+    string fdfs_file_id = 2;     // FastDFS文件ID
+}
+message GetWorksheetsResponse {
+    string request_id = 1;       // 请求id
+    int32 error_code = 2;        // 错误码
+    string error_msg = 3;        // 错误信息
+    repeated string worksheets = 4;  // 工作表名列表
+}
+
+//////////////////////// 解析 Excel 文件 ////////////////////////
+message ParseExcelRequest {
+    string request_id = 1;       // 请求id
+    string fdfs_file_id = 2;     // FastDFS文件ID
+    repeated string worksheets = 3;  // 要解析的工作表名列表
+}
+
+// 列信息（列名 + 推断的列类型，供数据库子服务建表用）
+message ColumnInfo {
+    string name = 1;             // 列名
+    string type = 2;             // TEXT, BIGINT, DOUBLE, BOOLEAN, DATE
+}
+
+// 单元格数据
+message CellData {
+    string value = 1;            // 单元格值（统一转字符串）
+    string type = 2;             // OpenXLSX内部类型：Empty, Integer, Float, Boolean, String
+}
+
+// 行数据（一行包含多个单元格）
+message RowData {
+    repeated CellData cells = 1; // 单元格数据
+}
+
+// 工作表数据
+message WorksheetData {
+    string name = 1;                       // 工作表名
+    repeated ColumnInfo columns = 2;       // 列信息
+    repeated RowData rows = 3;             // 行数据
+    int32 total_rows = 4;                  // 总行数
+    int32 total_cols = 5;                  // 总列数
+}
+
+message ParseExcelResponse {
+    string request_id = 1;                 // 请求id
+    int32 error_code = 2;                  // 错误码
+    string error_msg = 3;                  // 错误信息
+    repeated WorksheetData worksheets = 4; // 各工作表解析结果
+}
+
+/////////////////////////////////// Excel解析服务RPC定义 ///////////////////////////////////
+service ExcelParserService {
+    // 获取工作表名列表
+    rpc GetWorksheets(GetWorksheetsRequest) returns (GetWorksheetsResponse);
+    // 解析 Excel 文件，返回结构化数据
+    rpc ParseExcel(ParseExcelRequest) returns (ParseExcelResponse);
+}

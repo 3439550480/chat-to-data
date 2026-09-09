@@ -1,0 +1,249 @@
+syntax = "proto3";                   // 指定使用 proto3 语法版本
+package chat2Data.fileService;       // 定义包名，类似于C++中的命名空间
+option cc_generic_services = true;   // 生成 RPC 服务类（brpc 泛化服务必需）
+
+// 文件服务接口定义（向网关提供 RPC 响应）
+//////////////////////// 上传文件信息 ////////////////////////
+message FileInfo {
+    string filename = 1;             // 文件名
+    int64 file_size = 2;             // 文件大小(字节)
+    string file_ext = 3;             // 文件扩展名(.xlsx .db)
+}
+message UploadFileInfoRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    FileInfo file_info = 3;          // 文件信息
+    string user_id = 4;              // 用户id
+}
+message UploadFileInfoResult {
+    string file_id = 1;              // 生成的文件ID
+}
+message UploadFileInfoResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    UploadFileInfoResult result = 4; // 上传结果
+}
+
+//////////////////////// 获取文件信息 ////////////////////////
+message GetFileInfoRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+    string user_id = 4;              // 用户id
+}
+// 文件详情
+message FileDetail {
+    string file_id = 1;              // 文件id
+    string file_name = 2;            // 文件名
+    int64 file_size = 3;             // 文件大小(字节)
+    int64 upload_time = 4;           // 上传时间(秒级时间戳)
+    string file_ext = 5;             // 文件扩展名(.xlsx .db)
+}
+message GetFileInfoResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    FileDetail result = 4;           // 文件详情
+}
+
+//////////////////////// 上传文件 ////////////////////////
+// 注意：
+// 1. 前端通过HTTP协议上传文件数据，文件数据实际在HTTP的body中
+// 2. 网关收到之后，需要将上传文件数据请求路由给文件子服务
+// 3. 网关路由时，需要先从URL路径中解析出请求参数用来构建RPC请求
+// 4. RPC 请求中并不携带真实的文件数据，文件数据通过attachment传输
+// 5. attachment传输文件数据时，不需要序列化，而且是零拷贝传输，效率非常高
+// 6. 先调用 UploadFileInfo 上传文件元数据，拿到file_id，再调用UploadFile上传文件数据
+message UploadFileRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+    string user_id = 4;              // 用户id
+}
+message UploadFileResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+}
+
+//////////////////////// 下载文件 ////////////////////////
+message DownloadFileRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+    string user_id = 4;              // 用户id
+}
+// 下载文件响应：文件数据通过attachment传输
+message DownloadFileResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+}
+
+//////////////////////// 删除文件 ////////////////////////
+message DeleteFileRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+    string user_id = 4;              // 用户id
+}
+message DeleteFileResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+}
+
+//////////////////////// 预览Excel文件 ////////////////////////
+message PreviewExcelRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+    int32 page_number = 4;           // 页码（从1开始，默认为1）
+    int32 page_size = 5;             // 每页行数（默认为50）
+    string user_id = 6;              // 用户id
+}
+message Row {
+    repeated string cells = 1;       // 单元格数据
+}
+message Sheet {
+    string name = 1;                 // 工作表名
+    int32 total_rows = 2;            // 总行数
+    int32 col_count = 3;             // 列数
+    int32 current_page = 4;          // 当前页码
+    int32 total_pages = 5;           // 总页数
+    int32 page_size = 6;             // 每页行数
+    repeated Row data = 7;           // 行数据（当前页数据）
+    repeated string columns = 8;     // 列名列表
+}
+message ExcelData {
+    repeated Sheet sheets = 1;       // 工作表数据
+}
+message PreviewExcelResult {
+    string file_id = 1;              // 文件id
+    string file_name = 2;            // 文件名
+    int64 file_size = 3;             // 文件大小(字节)
+    string file_ext = 4;             // 文件扩展名(.xlsx)
+    ExcelData excel_data = 5;        // Excel数据
+}
+message PreviewExcelResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    PreviewExcelResult result = 4;   // 预览结果
+}
+
+//////////////////////// 获取文件列表 ////////////////////////
+message GetFileListRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string user_id = 3;              // 用户id
+}
+// 文件列表项
+message FileListItem {
+    string file_id = 1;              // 文件id
+    string file_name = 2;            // 文件名
+    int64 file_size = 3;             // 文件大小(字节)
+    int64 upload_time = 4;           // 上传时间(秒级时间戳)
+    string chat_session_id = 5;      // 聊天会话id
+}
+message GetFileListResult {
+    repeated FileListItem file_list = 1; // 文件列表
+}
+message GetFileListResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    GetFileListResult result = 4;    // 文件列表结果
+}
+
+//////////////////////// 关联文件和聊天会话 ////////////////////////
+// 用于在文件上传后，将已存在的文件与聊天会话建立关联关系
+message HandleFileChatSessionMapRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+    string chat_session_id = 4;      // 聊天会话id
+    string user_id = 5;              // 用户id
+}
+message HandleFileChatSessionMapResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+}
+
+//////////////////////// 上传SQLite文件 ////////////////////////
+message UploadSQLiteFileRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string filename = 3;             // 文件名
+    string user_id = 4;              // 用户id
+    // 文件数据在RPC attachment中，不在此message中
+}
+message UploadSQLiteFileResult {
+    string file_id = 1;              // 文件ID
+}
+message UploadSQLiteFileResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    UploadSQLiteFileResult result = 4; // 文件ID结果
+}
+
+/////////////////////// 获取SQLite文件信息 ///////////////////////
+message GetSQLiteFileRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+}
+message GetSQLiteFileResult {
+    string fdfsFileId = 1;           // FastDFS文件ID
+}
+message GetSQLiteFileResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    GetSQLiteFileResult result = 4;  // 文件路径结果
+}
+
+/////////////////////// 获取Worksheet数据库表名列表 ///////////////////////
+message GetWorksheetDBTablesRequest {
+    string request_id = 1;           // 请求id
+    string session_id = 2;           // 会话id
+    string file_id = 3;              // 文件id
+}
+message GetWorksheetDBTablesResult {
+    repeated string worksheet_dbTables = 1; // worksheet数据库表名列表
+}
+message GetWorksheetDBTablesResponse {
+    string request_id = 1;           // 请求id
+    int32 error_code = 2;            // 错误码
+    string error_msg = 3;            // 错误信息
+    GetWorksheetDBTablesResult result = 4; // worksheet数据库表列表结果
+}
+
+/////////////////////////////////// 文件服务RPC定义 ///////////////////////////////////
+service FileService {
+    // 上传文件信息
+    rpc UploadFileInfo(UploadFileInfoRequest) returns (UploadFileInfoResponse);
+    // 获取文件信息
+    rpc GetFileInfo(GetFileInfoRequest) returns (GetFileInfoResponse);
+    // 上传文件
+    rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+    // 下载文件
+    rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
+    // 删除文件
+    rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+    // 预览Excel文件
+    rpc PreviewExcel(PreviewExcelRequest) returns (PreviewExcelResponse);
+    // 获取文件列表
+    rpc GetFileList(GetFileListRequest) returns (GetFileListResponse);
+    // 关联文件和会话
+    rpc HandleFileChatSessionMap(HandleFileChatSessionMapRequest) returns (HandleFileChatSessionMapResponse);
+    // 上传SQLite文件
+    rpc UploadSQLiteFile(UploadSQLiteFileRequest) returns (UploadSQLiteFileResponse);
+    // 获取SQLite文件信息（数据库子服务使用：连接SQLite时取其在FastDFS中的文件id）
+    rpc GetSQLiteFile(GetSQLiteFileRequest) returns (GetSQLiteFileResponse);
+    // 获取Worksheet的数据库表名列表（AI子服务构建分析提示词时使用）
+    rpc GetWorksheetDBTables(GetWorksheetDBTablesRequest) returns (GetWorksheetDBTablesResponse);
+}

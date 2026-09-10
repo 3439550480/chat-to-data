@@ -69,4 +69,166 @@ std::string Utils::bcryptSaltEncode(const std::vector<char>& input) {
     return result;   // 16 字节输入 → 恒定 22 字符输出
 }
 
+// ==================== 第 16 章增补：Base64 编解码 + UTF-8 校验 ====================
+
+// 标准 Base64 编码（课件 54-56 页实现，注释保留其位运算说明）
+std::string Utils::base64Encode(const unsigned char* data, size_t len) {
+    // Base64字符表：64个可打印字符
+    static const char base64_chars[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789+/";
+
+    std::string ret;
+    ret.reserve((len + 2) / 3 * 4);   // 预估输出长度，避免反复扩容
+    int i = 0;
+    unsigned char char_array_3[3];    // 存储3个输入字节
+    unsigned char char_array_4[4];    // 存储4个输出字符的索引值
+    // 循环处理：每3个字节编码为4个字符
+    while (len--) {
+        char_array_3[i++] = *(data++);
+        if (i == 3) {
+            // 将3个字节(24个比特位)重新分组为4个6位值
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+            char_array_4[3] = char_array_3[2] & 0x3f;
+            for (i = 0; i < 4; i++) {
+                ret += base64_chars[char_array_4[i]];
+            }
+            i = 0;
+        }
+    }
+    // 处理剩余字节(不足3个)：补0对齐后只输出有效字符，'=' 填充
+    if (i > 0) {
+        for (int j = i; j < 3; j++) {
+            char_array_3[j] = '\0';
+        }
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+        for (int j = 0; j < i + 1; j++) {
+            ret += base64_chars[char_array_4[j]];
+        }
+        while (i++ < 3) {
+            ret += '=';
+        }
+    }
+    return ret;
+}
+
+// vector<char> 重载（课件 mysqlDatabase/sqliteDatabase 的实际调用形态）
+std::string Utils::base64Encode(const std::vector<char>& data) {
+    if (data.empty()) { return ""; }
+    return base64Encode(reinterpret_cast<const unsigned char*>(data.data()), data.size());
+}
+
+// 标准 Base64 解码（课件留 TODO，此处补全；非法字符/非法长度返回空串）
+std::string Utils::base64Decode(const std::string& str) {
+    // 反查表：字符 → 6位索引，'=' 之外的非法字符记 -1
+    static int decodeTable[256];
+    static bool tableInit = false;
+    if (!tableInit) {
+        // C++11 起函数内 static 初始化是线程安全的（魔法静态）
+        for (int i = 0; i < 256; ++i) { decodeTable[i] = -1; }
+        const char* chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz"
+            "0123456789+/";
+        for (int i = 0; i < 64; ++i) {
+            decodeTable[static_cast<unsigned char>(chars[i])] = i;
+        }
+        tableInit = true;
+    }
+    std::string ret;
+    ret.reserve(str.length() / 4 * 3);
+    int val = 0;       // 累积的 6 位组
+    int valb = -8;     // 已累积位数（负值表示还不够一个字节）
+    for (unsigned char c : str) {
+        if (c == '=') { break; }          // 填充符之后不再有数据
+        int d = decodeTable[c];
+        if (d == -1) { return ""; }       // 非法字符 → 整串拒绝
+        val = (val << 6) + d;
+        valb += 6;
+        if (valb >= 0) {
+            ret += static_cast<char>((val >> valb) & 0xFF);
+            valb -= 8;
+        }
+    }
+    return ret;
+}
+
+// UTF-8 合法性校验（课件 56-58 页实现：拒绝过短编码/代理对/超范围序列）
+bool Utils::isValidUtf8(const unsigned char* data, size_t len) {
+    size_t i = 0;
+    while (i < len) {
+        unsigned char c = data[i];
+        // 1. 单字节 ASCII (0xxxxxxx): U+0000 ~ U+007F
+        if (c <= 0x7F) {
+            i++;
+        } else if ((c & 0xE0) == 0xC0) {
+            // 2. 双字节字符 (110xxxxx 10xxxxxx): U+0080 ~ U+07FF
+            if (i + 1 >= len || (data[i + 1] & 0xC0) != 0x80) {
+                return false;
+            }
+            // [安全性] 拒绝过短编码：0xC0/0xC1 开头总是过短编码（如 0xC0 0x80 应为 0x00）
+            if (c < 0xC2) {
+                return false;
+            }
+            i += 2;
+        } else if ((c & 0xF0) == 0xE0) {
+            // 3. 三字节字符 (1110xxxx 10xxxxxx 10xxxxxx): U+0800 ~ U+FFFF
+            if (i + 2 >= len) {
+                return false;
+            }
+            unsigned char c1 = data[i + 1];
+            unsigned char c2 = data[i + 2];
+            if ((c1 & 0xC0) != 0x80 || (c2 & 0xC0) != 0x80) {
+                return false;
+            }
+            // [安全性] 拒绝过短编码：0xE0 时第二字节必须 >= 0xA0
+            if (c == 0xE0 && c1 < 0xA0) {
+                return false;
+            }
+            // [标准合规] 拒绝 UTF-16 代理对（U+D800~U+DFFF 不应出现在 UTF-8 中）
+            if (c == 0xED && c1 >= 0xA0) {
+                return false;
+            }
+            i += 3;
+        } else if ((c & 0xF8) == 0xF0) {
+            // 4. 四字节字符 (11110xxx 10xxxxxx ×3): U+10000 ~ U+10FFFF
+            if (i + 3 >= len) {
+                return false;
+            }
+            unsigned char c1 = data[i + 1];
+            unsigned char c2 = data[i + 2];
+            unsigned char c3 = data[i + 3];
+            if ((c1 & 0xC0) != 0x80 || (c2 & 0xC0) != 0x80 || (c3 & 0xC0) != 0x80) {
+                return false;
+            }
+            // [安全性] 拒绝过短编码：0xF0 时第二字节必须 >= 0x90
+            if (c == 0xF0 && c1 < 0x90) {
+                return false;
+            }
+            // [标准合规] 拒绝超出 Unicode 最大码点：最大合法序列 0xF4 0x8F 0xBF 0xBF
+            if (c > 0xF4) {
+                return false;
+            }
+            if (c == 0xF4 && c1 > 0x8F) {
+                return false;
+            }
+            i += 4;
+        } else {
+            // 5. 非法起始字节（孤立延续字节 / 0xC0~0xC1 兜底 / 0xF5~0xFF 超范围）
+            return false;
+        }
+    }
+    return true;
+}
+
+// string 重载
+bool Utils::isValidUtf8(const std::string& str) {
+    return isValidUtf8(reinterpret_cast<const unsigned char*>(str.data()), str.size());
+}
+
 } // end chat2Data

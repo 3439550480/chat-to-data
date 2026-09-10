@@ -11,10 +11,11 @@
 #include "common.h"
 #include "../proto/protoCode/fileService.pb.h"
 
-// 课件问题㉜修复：业务层使用 FLAGS_excel_service（调用 ExcelParserService 的 key），
+// 课件问题㉜修复：业务层使用 FLAGS_excel_service / FLAGS_db_service（调用 key），
 // 课件只在 main.cc 定义了 excel_parser_service_name（watch 用）——名字对不上，编译必炸。
 // 与用户子服务㉓同族：watch 管发现，这里管调用 key，两组 flag 分离
 DECLARE_string(excel_service);
+DECLARE_string(db_service);
 
 namespace fileService {
 

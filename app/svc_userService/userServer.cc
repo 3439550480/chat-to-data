@@ -87,13 +87,17 @@ std::shared_ptr<UserServer> UserServerBuilder::build() {
     // 5. 服务发现：回调把其他子服务的上下线实时同步进信道表（与网关同机制，方向相反——
     //    网关是"发现方"，本服务既发现别人（notify/db）也被别人发现（网关））
     // 5.1 创建服务上线 和 服务下线的回调
-    auto onlineCallback = [this](const std::string& serviceName, const std::string& serviceAddr) {
+    // B1 修复：按值捕获 channels 的 shared_ptr，不用 [this]——
+    // 回调交给 detach 的 watcher 线程长期持有，而 Builder 在 main 里是临时对象，
+    // build() 返回即析构；[this] 会让回调在后续 etcd 事件中访问已析构的 Builder（UB）
+    auto channels = _svcChannels;
+    auto onlineCallback = [channels](const std::string& serviceName, const std::string& serviceAddr) {
         INF("Service online: {} at {}", serviceName, serviceAddr);
-        _svcChannels->addNode(serviceName, serviceAddr);
+        channels->addNode(serviceName, serviceAddr);
     };
-    auto offlineCallback = [this](const std::string& serviceName, const std::string& serviceAddr) {
+    auto offlineCallback = [channels](const std::string& serviceName, const std::string& serviceAddr) {
         INF("Service offline: {} at {}", serviceName, serviceAddr);
-        _svcChannels->delNode(serviceName, serviceAddr);
+        channels->delNode(serviceName, serviceAddr);
     };
     // 5.2 创建服务器发现对象
     INF("Watch etcd addr: {}", _etcdAddr);

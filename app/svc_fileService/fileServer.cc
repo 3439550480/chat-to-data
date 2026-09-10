@@ -126,13 +126,16 @@ std::shared_ptr<FileServer> FileServerBuilder::build() {
         return nullptr;
     }
     // 9. 服务监控回调：上游服务上线/下线 → 增删 channel 节点
-    auto onlineCallback = [this](const std::string& serviceName, const std::string& serviceAddr) {
+    // B1 修复：按值捕获 channels（不用 [this]）——回调由 detach 的 watcher 线程长期持有，
+    // 而 Builder 在 main 中是临时对象，build() 返回即析构，[this] 会在后续事件中悬空
+    auto channels = _svcChannels;
+    auto onlineCallback = [channels](const std::string& serviceName, const std::string& serviceAddr) {
         INF("Service online: {} at {}", serviceName, serviceAddr);
-        _svcChannels->addNode(serviceName, serviceAddr);
+        channels->addNode(serviceName, serviceAddr);
     };
-    auto offlineCallback = [this](const std::string& serviceName, const std::string& serviceAddr) {
+    auto offlineCallback = [channels](const std::string& serviceName, const std::string& serviceAddr) {
         INF("Service offline: {} at {}", serviceName, serviceAddr);
-        _svcChannels->delNode(serviceName, serviceAddr);
+        channels->delNode(serviceName, serviceAddr);
     };
     // 10. 实例化服务监控对象，并起 detach 线程开始 watch
     INF("Watch etcd addr: {}", _registerCenterConfig._etcdAddr);

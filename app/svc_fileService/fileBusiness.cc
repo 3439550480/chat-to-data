@@ -1,4 +1,6 @@
 #include <fstream>
+#include <algorithm>
+#include <cctype>
 #include <sys/stat.h>
 #include <jsoncpp/json/json.h>
 #include <bite_scaffold/log.h>
@@ -7,6 +9,7 @@
 #include "fileBusiness.h"
 // 课件问题㉚纪律：pb.h 已随 fileBusiness.h 拉入，fdfs.h 必须在其后 + #undef byte 双保险
 #include "../proto/protoCode/excelParseService.pb.h"
+#include "../proto/protoCode/dbService.pb.h"   // ㉜ 桩回收：调用数据库子服务
 #include <bite_scaffold/fdfs.h>
 #ifdef byte
 #undef byte
@@ -260,13 +263,49 @@ bool FileBusiness::deleteFile(const std::string& fileId, const std::string& user
     if (!deleteFromFastDFS(fileInfo._fdfsFileId)) {
         WRN("Failed to delete file from FastDFS: fileId={}", fileId);
     }
-    // 3. Excel 文件：删除对应的数据库表（数据库子服务的 DropTableExcel RPC）
-    //    课件问题㉜桩：dbService.proto 尚未创建（数据库子服务章节），整段留档——
-    //    恢复时按课件第37页实现：取映射表名 → DropTableExcel(db_connect_id="excel_default")
-    //    if (fileInfo._fileExt == "xlsx") {
-    //        auto dbChannel = _svcChannels->getNode(FLAGS_db_service);
-    //        ... stub.DropTableExcel(&controller, &request, nullptr); ...
-    //    }
+    // 3. Excel 文件：删除对应的数据库表（㉜ 桩回收：调用 DatabaseService.DropTableExcel）
+    // B3 修复：扩展名归一化后再判断——proto 契约里 file_ext 形如 ".xlsx"（带点，
+    // 课件 FileInfo 注释亦如此），而课件 deleteFile 用 == "xlsx" 比较 → 分支永不进入，
+    // 删文件时漏掉数据库表清理，表变孤儿。这里去点 + 转小写后判断
+    std::string fileExt = fileInfo._fileExt;
+    if (!fileExt.empty() && fileExt[0] == '.') {
+        fileExt.erase(0, 1);
+    }
+    std::transform(fileExt.begin(), fileExt.end(), fileExt.begin(), ::tolower);
+    if (fileExt == "xlsx") {
+        auto worksheetMappings = _worksheetData->getWorksheetMappingsByFileIdFromDb(fileId);
+        if (!worksheetMappings.empty()) {
+            auto dbChannel = _svcChannels->getNode(FLAGS_db_service);
+            if (dbChannel) {
+                std::vector<std::string> tableNames;
+                tableNames.reserve(worksheetMappings.size());
+                for (const auto& ws : worksheetMappings) {
+                    tableNames.push_back(ws.tableName());
+                }
+                chat2Data::DatabaseService::DropTableExcelRequest request;
+                request.set_request_id(chat2Data::Utils::generateUuid());
+                request.set_session_id("");
+                // 智能 Excel 场景固定使用数据库服务的默认连接（契约常量，见 dbConnMgr.h）
+                request.set_db_connect_id("excel_default");
+                for (const auto& tableName : tableNames) {
+                    request.add_table_names(tableName);
+                }
+                chat2Data::DatabaseService::DropTableExcelResponse response;
+                brpc::Controller controller;
+                chat2Data::DatabaseService::DatabaseService_Stub dbStub(dbChannel.get());
+                dbStub.DropTableExcel(&controller, &request, &response, nullptr);
+                if (controller.Failed() || response.error_code() != 0) {
+                    WRN("Failed to drop Excel tables: fileId={}, error_code={}, error_msg={}",
+                        fileId, response.error_code(), response.error_msg());
+                } else {
+                    INF("Excel tables dropped: fileId={}, dropped={}",
+                        fileId, response.result().dropped_count());
+                }
+            } else {
+                WRN("DatabaseService not available, skip dropping Excel tables: fileId={}", fileId);
+            }
+        }
+    }
     // 4. worksheet 映射显式级联删除（方案A，替代 FK ON DELETE CASCADE）——
     //    必须在元数据删除前执行（此时还能拿到映射；无FK不会自动级联）
     if (!_worksheetData->deleteWorksheetMappingsByFileIdFromDb(fileId)) {
@@ -411,7 +450,7 @@ std::string FileBusiness::calculateTableName(const std::string& worksheetName,
     return sanitizedName + "_" + sanitizedFileId;
 }
 
-// 解析Excel数据并交数据库子服务入库（入库半截桩，㉜——解析半截已真实可用）
+// 解析Excel数据并交数据库子服务入库（㉜ 桩回收：解析 + 入库两截都真了）
 bool FileBusiness::importExcelData2DB(const std::string& fdfsFileId,
                                       const std::string& fileId,
                                       const std::vector<std::string>& worksheets) {
@@ -440,22 +479,86 @@ bool FileBusiness::importExcelData2DB(const std::string& fdfsFileId,
             parseResponse.error_code(), parseResponse.error_msg());
         return false;
     }
-    // 2. 导入解析后的数据到数据库
-    // 课件问题㉜桩：等数据库子服务章节实现（届时将 WorksheetData(列信息) 与
-    // RowData(行数据) 按映射表名逐表写入）
-    INF("Excel data parsed (DB import pending database sub-service): fileId={}, worksheets={}",
-        fileId, worksheets.size());
+    // 2. 通过数据库子服务逐 worksheet 入库（㉜ 桩回收）
+    auto dbChannel = _svcChannels->getNode(FLAGS_db_service);
+    if (!dbChannel) {
+        ERR("DatabaseService not available when importing Excel data to database");
+        return false;
+    }
+    chat2Data::DatabaseService::DatabaseService_Stub dbStub(dbChannel.get());
+    for (const auto& worksheetData : parseResponse.worksheets()) {
+        chat2Data::DatabaseService::ImportExcelDataRequest importRequest;
+        importRequest.set_request_id(chat2Data::Utils::generateUuid());
+        importRequest.set_session_id("");
+        importRequest.set_db_connect_id("excel_default");   // 智能Excel场景固定默认连接
+        // 表名必须与 uploadExcelFile 阶段落库的映射一致（同一套 calculateTableName 规则）
+        importRequest.set_table_name(calculateTableName(worksheetData.name(), fileId));
+        *importRequest.mutable_worksheet_data() = worksheetData;   // 解析结果整体传递
+        chat2Data::DatabaseService::ImportExcelDataResponse importResponse;
+        brpc::Controller importController;
+        dbStub.ImportExcelData(&importController, &importRequest, &importResponse, nullptr);
+        if (importController.Failed() || importResponse.error_code() != 0) {
+            ERR("Failed to import worksheet to DB: table={}, error_code={}, error_msg={}",
+                importRequest.table_name(), importResponse.error_code(), importResponse.error_msg());
+            return false;
+        }
+        INF("Worksheet imported: table={}, rows={}",
+            importResponse.result().table_name(), importResponse.result().imported_rows());
+    }
     return true;
 }
 
-// 通过数据库子服务获取Excel表数据（㉜桩：空实现，等数据库子服务章节）
+// 通过数据库子服务获取Excel表数据（㉜ 桩回收：预览数据填真）
 chat2Data::fileService::ExcelData FileBusiness::getExcelDataFromDB(
         const std::string& fileId, const std::vector<WorksheetEntity>& worksheets,
         int32_t pageNumber, int32_t pageSize) {
     chat2Data::fileService::ExcelData excelData;
-    // TODO(数据库子服务章节)：按 worksheet→表名映射，逐表分页查询数据填充 Sheet
-    INF("getExcelDataFromDB stub: fileId={}, worksheets={}, page={}/{}",
-        fileId, worksheets.size(), pageNumber, pageSize);
+    auto dbChannel = _svcChannels->getNode(FLAGS_db_service);
+    if (!dbChannel) {
+        ERR("DatabaseService not available when getting Excel data: fileId={}", fileId);
+        return excelData;
+    }
+    chat2Data::DatabaseService::DatabaseService_Stub dbStub(dbChannel.get());
+    for (const auto& ws : worksheets) {
+        chat2Data::DatabaseService::GetTableDataRequest request;
+        request.set_request_id(chat2Data::Utils::generateUuid());
+        request.set_session_id("");
+        request.set_db_connect_id("excel_default");
+        request.set_table_name(ws.tableName());
+        // 预览 Excel 内容要的是【导入时的原始数据】，不是修改沙箱副本 → force_original
+        request.set_force_original(true);
+        request.set_page_number(pageNumber);
+        request.set_page_size(pageSize);
+        chat2Data::DatabaseService::GetTableDataResponse response;
+        brpc::Controller controller;
+        dbStub.GetTableData(&controller, &request, &response, nullptr);
+        if (controller.Failed() || response.error_code() != 0) {
+            WRN("Failed to get table data: table={}, error_code={}, error_msg={}",
+                ws.tableName(), response.error_code(), response.error_msg());
+            continue;   // 单表失败不拖垮整体预览
+        }
+        // 组装 Sheet（展示名用 worksheet 名，表名是内部映射）
+        auto* sheet = excelData.add_sheets();
+        sheet->set_name(ws.worksheetName());
+        const auto& schema = response.result().table_schema();
+        const auto& tableData = schema.table_data();
+        sheet->set_total_rows(tableData.total_rows());
+        sheet->set_col_count(schema.column_info_size());
+        sheet->set_current_page(tableData.current_page());
+        sheet->set_total_pages(tableData.total_pages());
+        sheet->set_page_size(tableData.page_size());
+        for (const auto& col : schema.column_info()) {
+            sheet->add_columns(col.name());
+        }
+        for (const auto& row : tableData.rows()) {
+            auto* protoRow = sheet->add_data();
+            for (const auto& cell : row.cells()) {
+                protoRow->add_cells(cell);
+            }
+        }
+        INF("Excel sheet assembled: fileId={}, sheet={}, rows={}",
+            fileId, ws.worksheetName(), sheet->data_size());
+    }
     return excelData;
 }
 

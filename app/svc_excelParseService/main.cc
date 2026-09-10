@@ -15,7 +15,9 @@ DEFINE_string(service_addr, "dev-env-service:9003", "Excel解析子服务地址"
 // FastDFS配置（课件问题㉙修复：main.cc 从未调用 setFastDFSConfig——
 // Builder 里的 int 是垃圾值；这里显式配置并闭合配置链。
 // trackers 默认留空=占位启动：init 可过、真实下载等文件子服务章节部署后填入）
-DEFINE_string(fdfs_trackers, "", "FastDFS tracker地址（逗号分隔，空=占位启动）");
+// B2 修正：默认值与 file/db 两个服务统一为 dev-tracker:22122（原为空 → 回退占位
+// 127.0.0.1:22122 → 真实下载必失败，是"三服务默认值不一致"的启动陷阱）
+DEFINE_string(fdfs_trackers, "dev-tracker:22122", "FastDFS tracker地址（逗号分隔，空=占位启动）");
 DEFINE_int32(fdfs_connect_timeout, 30, "FastDFS连接超时（秒）");
 DEFINE_int32(fdfs_network_timeout, 30, "FastDFS网络超时（秒）");
 // 日志配置

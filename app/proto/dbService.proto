@@ -1,0 +1,255 @@
+syntax = "proto3";                       // 指定使用 proto3 语法版本
+package chat2Data.DatabaseService;       // 定义包名（课件原样：大写 D，与文件服务 deleteFile 桩的引用一致）
+import "excelParseService.proto";        // 导入 Excel 解析服务的 WorksheetData（ImportExcelData 复用）
+option cc_generic_services = true;       // 生成 RPC 服务类（brpc 泛化服务必需）
+
+// 数据库服务接口定义（向网关提供 5 个 + 向其他子服务提供 6 个）
+//////////////////////// 连接数据库 ////////////////////////
+// 支持的数据库类型
+enum DatabaseType {
+    DATABASE_TYPE_UNKNOWN = 0;    // 未知数据库类型
+    DATABASE_TYPE_MYSQL = 1;      // MySQL数据库
+    DATABASE_TYPE_SQLITE = 2;     // SQLite数据库
+}
+// MySQL数据库配置结构
+message MySQLDatabaseConfig {
+    string host = 1;              // MySQL主机地址
+    int32 port = 2;               // MySQL端口号
+    string name = 3;              // 数据库名称
+    string username = 4;          // 用户名
+    string password = 5;          // 密码
+    string charset = 6;           // 字符集，默认utf8mb4
+}
+// SQLite数据库配置结构
+message SQLiteDatabaseConfig {
+    string file_id = 1;           // SQLite数据库文件在FastDFS中的ID路径
+    bool readonly = 2;            // 是否只读，默认false
+}
+// 数据库配置（联合类型：只能配置一种数据库类型）
+message DatabaseConfig {
+    DatabaseType type = 1;        // 数据库类型
+    oneof config {
+        MySQLDatabaseConfig mysql_config = 2;   // MySQL数据库配置
+        SQLiteDatabaseConfig sqlite_config = 3; // SQLite数据库配置
+    }
+}
+message ConnectDatabaseRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string user_id = 3;           // 用户id
+    DatabaseConfig database = 4;  // 数据库配置
+}
+message ConnectDatabaseResult {
+    string connection_id = 1;     // 数据库连接ID
+}
+message ConnectDatabaseResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    ConnectDatabaseResult result = 4;  // 连接数据库结果
+}
+
+//////////////////////// 断开数据库连接 ////////////////////////
+message DisconnectDatabaseRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string connection_id = 3;     // 数据库连接ID
+}
+message DisconnectDatabaseResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+}
+
+//////////////////////// 获取数据库表列表 ////////////////////////
+message ListTablesRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+}
+message ListTablesResult {
+    repeated string tables = 1;   // 表名列表
+}
+message ListTablesResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    ListTablesResult result = 4;  // 获取表列表结果
+}
+
+//////////////////////// 获取表数据 ////////////////////////
+message GetTableDataRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+    string table_name = 4;        // 表名
+    bool force_original = 5;      // 是否强制使用原始表查询（false=优先临时表），默认false
+    int32 page_number = 6;        // 页码（从1开始，默认为1）
+    int32 page_size = 7;          // 每页行数（默认为50）
+}
+// 列信息（列名 + 列类型）
+message ColumnInfo {
+    string name = 1;              // 列名
+    string type = 2;              // 列类型
+}
+message Row {
+    repeated string cells = 1;    // 单元格数据
+}
+// 表数据（当前页 + 分页元信息）
+message TableData {
+    repeated Row rows = 1;        // 行数据（当前页数据）
+    int32 total_rows = 2;         // 总行数
+    int32 current_page = 3;       // 当前页码
+    int32 total_pages = 4;        // 总页数
+    int32 page_size = 5;          // 每页行数
+}
+message TableSchemaInfo {
+    repeated ColumnInfo column_info = 1;  // 列信息
+    TableData table_data = 2;             // 表数据
+}
+message GetTableDataResult {
+    TableSchemaInfo table_schema = 1;     // 表结构信息
+}
+message GetTableDataResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    GetTableDataResult result = 4; // 获取表数据结果
+}
+
+//////////////////////// 通用 SQL 执行 ////////////////////////
+message ExecuteSQLRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+    string sql = 4;               // SQL语句
+}
+message ExecuteSQLResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    // SELECT 查询结果（执行查询SQL时使用）
+    repeated string columns = 4;  // 列名列表
+    repeated string column_types = 5;  // 列类型列表
+    repeated Row rows = 6;        // 行数据
+    // 非查询SQL结果（执行INSERT/UPDATE/DELETE/CREATE等时使用）
+    int32 affected_rows = 7;      // 影响的行数
+    bool is_query = 8;            // 是否为查询SQL（true=查询，false=非查询）
+}
+
+//////////////////////// 获取表结构 ////////////////////////
+message GetTableStructRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+    string table_name = 4;        // 表名
+}
+message GetTableStructResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    string table_struct = 4;      // 表结构描述（格式化字符串，供AI构建提示词）
+}
+
+//////////////////////// 获取采样数据 ////////////////////////
+message GetSampleDataRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+    string table_name = 4;        // 表名
+    int32 limit = 5;              // 采样数量（<=0 时默认 5）
+}
+message GetSampleDataResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    string sample_data = 4;       // 采样数据（制表符分隔的格式化字符串）
+}
+
+//////////////////////// 导入Excel数据 ////////////////////////
+message ImportExcelDataRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+    string table_name = 4;        // 表名
+    excelParseService.WorksheetData worksheet_data = 5;  // Excel解析出的工作表数据
+}
+message ImportExcelDataResult {
+    string table_name = 1;        // 表名
+    int32 imported_rows = 2;      // 导入的行数
+}
+message ImportExcelDataResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    ImportExcelDataResult result = 4;  // 导入Excel数据结果
+}
+
+//////////////////////// 删除Excel表 ////////////////////////
+message DropTableExcelRequest {
+    string request_id = 1;        // 请求id
+    string session_id = 2;        // 会话id
+    string db_connect_id = 3;     // 数据库连接ID
+    repeated string table_names = 4;  // 要删除的表名列表
+}
+message DropTableExcelResult {
+    int32 dropped_count = 1;      // 成功删除的表数量
+    repeated string dropped_tables = 2;  // 成功删除的表名列表
+    repeated string failed_tables = 3;   // 删除失败的表名列表
+}
+message DropTableExcelResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    DropTableExcelResult result = 4;  // 删除Excel表结果
+}
+
+//////////////////////// 获取连接临时表 ////////////////////////
+message GetConnTempTablesRequest {
+    string request_id = 1;        // 请求id
+    string db_connect_id = 2;     // 数据库连接ID
+}
+message GetConnTempTablesResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+    repeated string temp_tables = 4;  // 连接对应的临时表名列表
+    bool has_temp_tables = 5;     // 连接是否有临时表
+}
+
+//////////////////////// 删除用户所有连接 ////////////////////////
+message DeleteUserAllConnRequest {
+    string request_id = 1;        // 请求id
+    string user_id = 2;           // 用户id
+}
+message DeleteUserAllConnResponse {
+    string request_id = 1;        // 请求id
+    int32 error_code = 2;         // 错误码
+    string error_msg = 3;         // 错误信息
+}
+
+/////////////////////////////////// 数据库服务RPC定义 ///////////////////////////////////
+service DatabaseService {
+    // 连接数据库
+    rpc ConnectDatabase(ConnectDatabaseRequest) returns (ConnectDatabaseResponse);
+    // 断开数据库连接
+    rpc DisconnectDatabase(DisconnectDatabaseRequest) returns (DisconnectDatabaseResponse);
+    // 获取数据库表列表
+    rpc ListTables(ListTablesRequest) returns (ListTablesResponse);
+    // 获取表数据
+    rpc GetTableData(GetTableDataRequest) returns (GetTableDataResponse);
+    // 通用 SQL 执行
+    rpc ExecuteSQL(ExecuteSQLRequest) returns (ExecuteSQLResponse);
+    // 获取连接临时表
+    rpc GetConnTempTables(GetConnTempTablesRequest) returns (GetConnTempTablesResponse);
+    // 获取表结构
+    rpc GetTableStruct(GetTableStructRequest) returns (GetTableStructResponse);
+    // 获取采样数据
+    rpc GetSampleData(GetSampleDataRequest) returns (GetSampleDataResponse);
+    // 导入Excel数据
+    rpc ImportExcelData(ImportExcelDataRequest) returns (ImportExcelDataResponse);
+    // 删除Excel表
+    rpc DropTableExcel(DropTableExcelRequest) returns (DropTableExcelResponse);
+    // 删除用户所有连接
+    rpc DeleteUserAllConn(DeleteUserAllConnRequest) returns (DeleteUserAllConnResponse);
+}

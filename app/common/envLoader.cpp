@@ -4,7 +4,8 @@
 #include <fstream>
 #include <algorithm>
 #include <cctype>
-#include <bite_scaffold/log.h>
+// 注意：本模块刻意【不打日志】——它服务于 main 最早期（日志器初始化之前），
+// 此时 bitelog::g_logger 尚为空，任何 INF/ERR 都会空指针崩溃（H8 实测踩雷）
 
 namespace chat2Data {
 
@@ -62,7 +63,7 @@ bool loadEnvFile(const std::string& path) {
             ++loadedCount;
         }
     }
-    INF("Env file loaded: path={}, variables={}", path, loadedCount);
+    // 不打日志（本模块运行早于日志器初始化）；成功与否由返回值表达
     return loadedCount > 0;
 }
 

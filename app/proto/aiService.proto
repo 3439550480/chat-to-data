@@ -1,0 +1,179 @@
+syntax = "proto3";                   // 指定使用 proto3 语法版本
+package chat2Data.AiService;         // 定义包名
+option cc_generic_services = true;   // 生成 RPC 服务类（brpc 泛化服务必需）
+
+// AI 子服务接口定义（向网关提供 7 个 RPC，其中 SendMessage 为服务端流式）
+//////////////////////// 获取模型列表 ////////////////////////
+message GetModelsRequest {
+    string request_id = 1;            // 请求ID
+}
+message ModelInfo {
+    string name = 1;                  // 模型名称
+    string desc = 2;                  // 模型描述
+}
+message GetModelsResult {
+    repeated ModelInfo models = 1;    // 模型列表
+}
+message GetModelsResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误信息
+    GetModelsResult result = 4;       // 模型列表
+}
+
+//////////////////////// 新建聊天会话 ////////////////////////
+message CreateChatSessionRequest {
+    string request_id = 1;            // 请求ID
+    string user_id = 2;               // 用户ID
+    string model = 3;                 // 模型名称
+    string session_type = 4;          // 会话类型：excel/database
+    string db_connection_info = 5;    // 数据库连接信息JSON（database 场景使用）
+}
+message CreateChatSessionData {
+    string chat_session_id = 1;       // 聊天会话Id
+    string model = 2;                 // 模型名称
+}
+message CreateChatSessionResult {
+    CreateChatSessionData session = 1;  // 聊天会话数据
+}
+message CreateChatSessionResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误信息
+    CreateChatSessionResult result = 4;  // 聊天会话数据
+}
+
+//////////////////////// 获取聊天会话列表 ////////////////////////
+message GetSessionsRequest {
+    string request_id = 1;            // 请求ID
+    string user_id = 2;               // 用户ID
+}
+message SessionInfo {
+    string id = 1;                    // 会话Id
+    string model = 2;                 // 模型名称
+    string title = 3;                 // 会话标题
+    int64 created_at = 4;             // 创建时间
+    int64 updated_at = 5;             // 最近活跃时间
+    int32 message_count = 6;          // 消息数量
+    string first_user_message_content = 7;  // 首条消息内容(不超过20字)
+    string session_type = 8;          // 会话类型：excel/database
+    string db_connection_info = 9;    // 数据库连接信息JSON（数据库场景）
+}
+message GetSessionsResult {
+    repeated SessionInfo sessionInfo = 1;   // 会话列表
+}
+message GetSessionsResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误信息
+    GetSessionsResult result = 4;     // 会话列表
+}
+
+//////////////////////// 删除指定会话 ////////////////////////
+message DeleteSessionRequest {
+    string request_id = 1;            // 请求ID
+    string user_id = 2;               // 用户ID
+    string chat_session_id = 3;       // 聊天会话ID
+}
+message DeleteSessionResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误信息
+}
+
+//////////////////////// 获取指定会话的历史消息 ////////////////////////
+message GetSessionHistoryRequest {
+    string request_id = 1;            // 请求ID
+    string user_id = 2;               // 用户ID（用于校验会话归属）
+    string chat_session_id = 3;       // 聊天会话Id
+}
+message HistoryMessage {
+    string id = 1;                    // 消息Id
+    string role = 2;                  // "user" 或 "assistant"
+    string content = 3;               // 消息内容
+    int64 timestamp = 4;              // 消息时间戳
+}
+message GetSessionHistoryResult {
+    string file_id = 1;               // 可选，仅在会话关联了文件时存在
+    string session_type = 2;          // 会话类型：excel/database
+    string db_connection_info = 3;    // 数据库连接信息JSON（数据库场景）
+    repeated HistoryMessage messages = 4;  // 历史消息列表
+}
+message GetSessionHistoryResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误信息
+    GetSessionHistoryResult result = 4;  // 历史消息列表
+}
+/*
+ * 前端点击历史会话项时：
+ *  · Excel 场景 → 跳转 Excel 页面，用 file_id 预览文件内容与聊天记录
+ *  · 数据库场景 → 跳转数据库页面，用 db_connection_info 新建连接并展示数据
+ */
+
+//////////////////////// 发送消息（流式响应） ////////////////////////
+enum DataType {
+    EXCEL = 0;                        // Excel场景
+    MYSQL = 1;                        // MySQL场景
+    SQLITE = 2;                       // SQLite场景
+}
+message SendMessageRequest {
+    string request_id = 1;            // 请求ID
+    string session_id = 2;            // 会话ID
+    string user_id = 3;               // 用户ID
+    string chat_session_id = 4;       // AI聊天会话ID
+    string chat_type = 5;             // 聊天类型：excel/database/plain
+    string message = 6;               // 用户消息内容
+    string file_id = 7;               // 文件ID（Excel场景）
+    DataType db_type = 8;             // 数据类型（数据库场景）
+    string db_connect_id = 9;         // 数据库连接ID（数据库场景）
+    string table_name = 10;           // 表名，多个表名以逗号分隔（数据库场景）
+}
+/*
+ * chat_type 说明：
+ *  · excel    ：Excel 场景，file_id 非空
+ *  · database ：数据库场景，db_connect_id 非空，db_type 指明数据库类型，
+ *               table_name 指明要操作的表
+ *  · plain    ：普通聊天场景
+ */
+message SendMessageResult {
+    bool done = 1;                    // 是否完成
+    string content = 2;               // 消息片段
+}
+message SendMessageResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误描述
+    SendMessageResult result = 4;     // 消息结果
+}
+
+//////////////////////// 更新会话文件关联 ////////////////////////
+message UpdateSessionFileRequest {
+    string request_id = 1;            // 请求ID
+    string user_id = 2;               // 用户ID
+    string chat_session_id = 3;       // 聊天会话ID
+    string file_id = 4;               // 文件ID
+}
+message UpdateSessionFileResponse {
+    string request_id = 1;            // 请求ID
+    int32 error_code = 2;             // 错误码
+    string error_msg = 3;             // 错误描述
+}
+
+/////////////////////////////////// AI 服务 RPC 定义 ///////////////////////////////////
+service AIService {
+    // 获取支持的模型
+    rpc GetModels(GetModelsRequest) returns (GetModelsResponse);
+    // 创建新会话
+    rpc CreateSession(CreateChatSessionRequest) returns (CreateChatSessionResponse);
+    // 获取会话列表
+    rpc GetSessions(GetSessionsRequest) returns (GetSessionsResponse);
+    // 获取指定会话的历史消息
+    rpc GetSessionHistory(GetSessionHistoryRequest) returns (GetSessionHistoryResponse);
+    // 删除会话
+    rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse);
+    // 更新会话文件关联（文件子服务在关联 Excel 与聊天会话时调用）
+    rpc UpdateSessionFile(UpdateSessionFileRequest) returns (UpdateSessionFileResponse);
+    // 发送消息（服务端流式响应：SSE 逐块推送）
+    rpc SendMessage(SendMessageRequest) returns (stream SendMessageResponse);
+}

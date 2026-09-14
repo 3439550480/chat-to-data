@@ -1,0 +1,4 @@
+[12:56:05][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:86  ]GLMProvider glm-5.3-flash registered successed (baseUrl=https://open.bigmodel.cn/api/paas/v4/chat/completions)
+[12:56:05][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:70  ]GLMProvider initModel success, model=glm-5.3-flash, endpoint=https://open.bigmodel.cn/api/paas/v4/chat/completions
+[12:56:13][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:201 ]GLMProvider sendMessageStream url: https://open.bigmodel.cn/api/paas/v4/chat/completions, model=glm-5.3-flash
+[12:56:52][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:201 ]GLMProvider sendMessageStream url: https://open.bigmodel.cn/api/paas/v4/chat/completions, model=glm-5.3-flash

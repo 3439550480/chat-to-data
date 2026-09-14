@@ -16,6 +16,7 @@
 // 与用户子服务㉓同族：watch 管发现，这里管调用 key，两组 flag 分离
 DECLARE_string(excel_service);
 DECLARE_string(db_service);
+DECLARE_string(ai_service);
 
 namespace fileService {
 

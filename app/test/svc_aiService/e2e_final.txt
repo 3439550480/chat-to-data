@@ -1,0 +1,10 @@
+[OK]   CreateSession (chat_session_id=session_1789390612_00000002)
+[OK]   GetSessions contains the new session
+[FAIL] SendMessage no DONE marker: data: 连接
+
+data: 成功
+[OK]   SendMessage non-empty model content
+[OK]   GetSessionHistory has user+assistant messages (1/1)
+[OK]   DeleteSession success
+[OK]   session removed from list after delete
+summary: failCount=1

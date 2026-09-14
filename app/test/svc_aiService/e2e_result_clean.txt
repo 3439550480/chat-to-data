@@ -1,0 +1,8 @@
+ÿþ[OK]   CreateSession (chat_session_id=session_1789375507_00000001)
+[OK]   GetSessions contains the new session
+[FAIL] SendMessage no DONE marker: 
+[FAIL] SendMessage empty model content
+[FAIL] GetSessionHistory messages missing: {"request_id":"e2e_4","result":{"session_type":"plain","messages":[{"id":"msg_1789375507_00000001","role":"user","content":"‡tð\g_e“²p2æe“—mÜ‘pKi0}ig´p4^´“,aÛY","timestamp":1789375507}]}}
+[FAIL] DeleteSession: {"request_id":"e2e_5"}
+[OK]   session removed from list after delete
+summary: failCount=4

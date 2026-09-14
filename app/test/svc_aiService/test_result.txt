@@ -1,0 +1,114 @@
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from ChatSessionTest
+[ RUN      ] ChatSessionTest.SaveAndGetById
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:13]: ChatSessionData initialized
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:8]: ChatSessionMgr initialized
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:38]: ChatSession saved to DB: chatSessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:118]: ChatSession found in DB: sessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:98]: ChatSession deleted from DB: chatSessionId=cs_save_25ee-f80
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:191]: ChatSession deleted from cache: chatSessionId=cs_save_25ee-f80
+[       OK ] ChatSessionTest.SaveAndGetById (43 ms)
+[ RUN      ] ChatSessionTest.UpdateSemantics
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:13]: ChatSessionData initialized
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:8]: ChatSessionMgr initialized
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:38]: ChatSession saved to DB: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:34]: ChatSession updated in DB: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:118]: ChatSession found in DB: sessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:82]: ChatSessions found in DB by userId: userId=user_upd, count=1
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:77]: Get ChatSessions by userId: userId=user_upd, count=1
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:98]: ChatSession deleted from DB: chatSessionId=cs_upd_b43f-8b3
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:191]: ChatSession deleted from cache: chatSessionId=cs_upd_b43f-8b3
+[       OK ] ChatSessionTest.UpdateSemantics (44 ms)
+[ RUN      ] ChatSessionTest.CacheRoundTrip
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:13]: ChatSessionData initialized
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:8]: ChatSessionMgr initialized
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_cache_4584-591
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_cache_4584-591
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:191]: ChatSession deleted from cache: chatSessionId=cs_cache_4584-591
+[       OK ] ChatSessionTest.CacheRoundTrip (6 ms)
+[ RUN      ] ChatSessionTest.CacheDelete
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:13]: ChatSessionData initialized
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:8]: ChatSessionMgr initialized
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_cdel_320f-a54
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:191]: ChatSession deleted from cache: chatSessionId=cs_cdel_320f-a54
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_cdel_320f-a54
+[       OK ] ChatSessionTest.CacheDelete (6 ms)
+[ RUN      ] ChatSessionTest.UserIsolation
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:13]: ChatSessionData initialized
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:8]: ChatSessionMgr initialized
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:38]: ChatSession saved to DB: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:38]: ChatSession saved to DB: chatSessionId=cs_iso_b_86a5-e9c
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_iso_b_86a5-e9c
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_iso_b_86a5-e9c
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:82]: ChatSessions found in DB by userId: userId=user_A, count=1
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:77]: Get ChatSessions by userId: userId=user_A, count=1
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:82]: ChatSessions found in DB by userId: userId=user_B, count=1
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:77]: Get ChatSessions by userId: userId=user_B, count=1
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:28]: Session ownership check from DB: chatSessionId=cs_iso_a_03c6-99e, userId=user_A, owned=true
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:28]: Session ownership check from DB: chatSessionId=cs_iso_a_03c6-99e, userId=user_B, owned=false
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_not_exist_1234
+[08:44:33][warning]: [/home/dev/chat2data/data/chatSessionData.cc:60]: ChatSession not found in DB by chatSessionId: chatSessionId=cs_not_exist_1234
+[08:44:33][warning]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:24]: Session not found: chatSessionId=cs_not_exist_1234
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:98]: ChatSession deleted from DB: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_iso_a_03c6-99e
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:98]: ChatSession deleted from DB: chatSessionId=cs_iso_b_86a5-e9c
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_iso_b_86a5-e9c
+[       OK ] ChatSessionTest.UserIsolation (63 ms)
+[ RUN      ] ChatSessionTest.AssociateAndDeletePermission
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:13]: ChatSessionData initialized
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:8]: ChatSessionMgr initialized
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:38]: ChatSession saved to DB: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:28]: Session ownership check from DB: chatSessionId=cs_assoc_fbdf-fe8, userId=user_assoc, owned=true
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:118]: ChatSession found in DB: sessionId=cs_assoc_fbdf-fe8
+[08:44:33][error  ]: [/home/dev/chat2data/data/chatSessionData.cc:43]: Failed to save ChatSession to DB: chatSessionId=cs_assoc_fbdf-fe8, error=1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`chat2Data`.`tbl_chatSession`, CONSTRAINT `tbl_chatSession_fileId_fk` FOREIGN KEY (`fileId`) REFERENCES `tbl_fileInfo` (`fileId`) ON DELETE CASCADE)
+[08:44:33][error  ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:49]: Failed to save ChatSession to DB: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][error  ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:160]: Failed to update ChatSession fileId: chatSessionId=cs_assoc_fbdf-fe8, fileId=file_not_exist
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:18]: Session ownership check from cache: chatSessionId=cs_assoc_fbdf-fe8, userId=user_assoc, owned=true
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:97]: ChatSession found in cache: sessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:34]: ChatSession updated in DB: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:191]: ChatSession deleted from cache: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:55]: ChatSession saved: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:164]: ChatSession fileId associated: chatSessionId=cs_assoc_fbdf-fe8, fileId=file_xyz789
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:133]: ChatSession saved to cache: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:118]: ChatSession found in DB: sessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:18]: Session ownership check from cache: chatSessionId=cs_assoc_fbdf-fe8, userId=wrong_user, owned=false
+[08:44:33][warning]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:146]: User does not own the session: chatSessionId=cs_assoc_fbdf-fe8, userId=wrong_user
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:18]: Session ownership check from cache: chatSessionId=cs_assoc_fbdf-fe8, userId=wrong_user, owned=false
+[08:44:33][warning]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:126]: User does not own the session: chatSessionId=cs_assoc_fbdf-fe8, userId=wrong_user
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:97]: ChatSession found in cache: sessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:18]: Session ownership check from cache: chatSessionId=cs_assoc_fbdf-fe8, userId=user_assoc, owned=true
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:98]: ChatSession deleted from DB: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:191]: ChatSession deleted from cache: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:137]: ChatSession deleted: sessionId=cs_assoc_fbdf-fe8
+[08:44:33][warning]: [/home/dev/chat2data/data/chatSessionData.cc:60]: ChatSession not found in DB by chatSessionId: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:152]: ChatSession not found in cache by chatSessionId: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:98]: ChatSession deleted from DB: chatSessionId=cs_assoc_fbdf-fe8
+[08:44:33][info   ]: [/home/dev/chat2data/data/chatSessionData.cc:189]: ChatSession not found in cache: chatSessionId=cs_assoc_fbdf-fe8
+[       OK ] ChatSessionTest.AssociateAndDeletePermission (117 ms)
+[----------] 6 tests from ChatSessionTest (286 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (288 ms total)
+[  PASSED  ] 6 tests.
+test_exit=True

@@ -1,0 +1,6 @@
+[13:03:04][info   ]: [/home/dev/chat2data/svc_fileService/fileServiceImpl.cc:52]: UploadFileInfo success: requestId=ec_1, fileId=78a1-fd4e84cc-0000
+[2026-09-14 13:03:04] ERROR - file: ../tracker/tracker_proto.c, line: 65, server: 172.18.0.3:22122, response status 2 != 0
+[2026-09-14 13:03:04] ERROR - file: tracker_client.c, line: 901, fdfs_recv_response fail, result: 2
+[13:03:04][error  ]: [/home/dev/openPrjSource/cpp-microservice-scaffold/source/fdfs.cc:36]: 文件上传失败: No such file or directory
+[13:03:04][error  ]: [/home/dev/chat2data/svc_fileService/fileBusiness.cc:396]: Failed to upload file to FastDFS: filename=e2e薪资表.xlsx
+[13:03:04][error  ]: [/home/dev/openPrjSource/cpp-microservice-scaffold/source/fdfs.cc:99]: 文件删除失败: Invalid argument

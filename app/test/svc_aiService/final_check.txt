@@ -1,0 +1,16 @@
+=== 1. curl 直测 GLM（新 key）===
+key len: 49, model: glm-5.3-flash
+HTTP status: 200
+{"choices":[{"finish_reason":"length","index":0,"message":{"content":"","reasoning_content":"The user's instruction is clear: respond with only","role":"assistant"}}],"created":1789390564,"id":"2026091420560308dab7a0adf64308","model":"glm-5.3-flash","object":"chat.completion","request_id":"202609142
+=== 2. 重启 AIService ===
+9006 在听
+=== 3. 重跑 E2E ===
+[OK]   CreateSession (chat_session_id=session_1789390573_00000001)
+[OK]   GetSessions contains the new session
+[FAIL] SendMessage no DONE marker: data: 连接成功
+[OK]   SendMessage non-empty model content
+[OK]   GetSessionHistory has user+assistant messages (1/1)
+[OK]   DeleteSession success
+[OK]   session removed from list after delete
+summary: failCount=1
+e2e_exit=1

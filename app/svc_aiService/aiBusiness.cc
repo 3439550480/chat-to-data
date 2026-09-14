@@ -1,7 +1,9 @@
 #include "aiBusiness.h"
+#include "aiMessageHandler.h"
 #include "../common/errorHandler.h"
 #include <bite_scaffold/log.h>
 #include <bite_scaffold/util.h>
+#include <ctime>
 #include <ctime>
 
 namespace aiService {
@@ -196,10 +198,51 @@ bool AIBusiness::updateSessionFile(const std::string& chatSessionId, const std::
     return true;
 }
 
-// 发送消息（桩：19 章 H13 落地——归属校验 + 独立线程 + AIMessageHandler 全流程）
+// 发送消息：归属校验（同步）→ 独立线程跑全流程（SSE 推流）
 void AIBusiness::sendMessage(const SendMessageContext& context,
                              butil::intrusive_ptr<brpc::ProgressiveAttachment> progressiveAttachment) {
-    // 等发送消息模块实现完成之后再完善
+    // 1. 归属校验——在 RPC 线程同步做：不合法直接抛，
+    //    接口层 catch 后回 AI_CHATSESSION_NOT_OWNED_BY_USER（此时响应头未发出）
+    if (!_chatSessionMgr->isSessionOwnedByUser(context._chatSessionId, context._userId)) {
+        ERR("ChatSession not owned by user: chatSessionId={}, userId={}",
+            context._chatSessionId, context._userId);
+        throw chat2Data::Chat2DataException(
+            chat2Data::ErrorCode::AI_CHATSESSION_NOT_OWNED_BY_USER);
+    }
+    // 2. 独立线程处理消息发送：
+    //    - 分析/总结要多次调模型，耗时远超 RPC 线程应占有的时间
+    //    - done 已在接口层 Run()（RPC 线程已归还），推流只依赖 progressiveAttachment
+    //    - this 捕获安全：AIBusiness 由 AIServiceImpl 持有（进程级生命周期），
+    //      与 B1 的临时 Builder 不同
+    std::thread([this, context, progressiveAttachment]() {
+        try {
+            // writeChunk 回调：SSE 格式化（客户端自己按 data: 块解析）
+            // ★ AI12 修复：课件在 done=true 时只发 [DONE]、丢弃同批内容——
+            //   导致异常路径的 "error: xxx" 永远到不了前端（实测 SSE 只剩 data: [DONE]）。
+            //   正确顺序：内容非空先发内容块，再发结束标记
+            auto writeChunk = [progressiveAttachment](const std::string& chunk, bool done) {
+                if (!chunk.empty()) {
+                    std::string data = "data: " + chunk + "\n\n";
+                    progressiveAttachment->Write(data.c_str(), data.size());
+                }
+                if (done) {
+                    const std::string data = "data: [DONE]\n\n";   // SSE 结束标记
+                    progressiveAttachment->Write(data.c_str(), data.size());
+                }
+            };
+            // 每次新建 Handler（无状态，线程安全）
+            AIMessageHandler handler(_chatSdk, _chatSessionMgr, _svcChannels);
+            handler.sendMessage(context, writeChunk);
+        } catch (const std::exception& e) {
+            ERR("Exception in sendMessage thread: {}", e.what());
+            // 线程内异常：响应头已发出，只能走流式错误通道
+            // （课件 "\n[DONE]" 与正常通道 "data: [DONE]\n\n" 格式不一致——已统一）
+            std::string errorData = "data: error: " + std::string(e.what()) + "\n\n";
+            progressiveAttachment->Write(errorData.c_str(), errorData.size());
+            errorData = "data: [DONE]\n\n";
+            progressiveAttachment->Write(errorData.c_str(), errorData.size());
+        }
+    }).detach();
 }
 
 } // namespace aiService

@@ -1,0 +1,3 @@
+40:DEFINE_string(ai_service, "AIService", "AI子服务调用key（H14：更新会话文件关联）");
+43:DEFINE_string(watch_ai_service, "AIService", "AI子服务名称（watch）");
+103:    watchServices.push_back(FLAGS_watch_ai_service);

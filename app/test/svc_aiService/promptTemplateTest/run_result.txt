@@ -1,0 +1,7 @@
+[OK]   analysis prompt: all placeholders replaced (AI9 display_type included)
+[OK]   summary prompt: all placeholders replaced
+[OK]   email prompt: all placeholders replaced
+[OK]   analysis prompt: all stage tags present
+[OK]   summary prompt: json fields present
+[OK]   email prompt: output fields present
+summary: failCount=0

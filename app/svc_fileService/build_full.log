@@ -1,0 +1,5 @@
+-rwxrwxrwx 1 root root    5614 08:27:50 ../main.cc
+-rw-r--r-- 1 root root 3893912 08:27:59 CMakeFiles/FileService.dir/main.cc.o
+Consolidate compiler generated dependencies of target FileService
+[100%] Built target FileService
+build_exit=True

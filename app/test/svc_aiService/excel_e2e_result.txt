@@ -1,0 +1,21 @@
+[100%] Built target excelChatE2e
+=== 运行 ===
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:64]: [OK]   test xlsx built
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:92]: [OK]   UploadFileInfo
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:94]: [OK]   got file_id
+[13:03:04][error  ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:106]: [FAIL] UploadFile (excel 解析+建表入库完成)
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:117]: [OK]   AI.CreateSession (excel)
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:119]: [OK]   got chat_session_id
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:131]: [OK]   HandleFileChatSessionMap (文件↔会话双向关联，H14 链路)
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:147]: [OK]   GetSessions shows excel session
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:159]: [OK]   SendMessage HTTP 响应收到
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:161]: [OK]   excel 流程走完（data: [DONE]）
+[13:03:04][error  ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:164]: [FAIL] excel 流程产出图表数据块或明确错误（宽松断言）
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:165]: SSE 响应前 600 字符:
+data: [DONE]
+
+
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:175]: [OK]   DeleteSession
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:185]: [OK]   DeleteFile（级联删表）
+[13:03:04][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:188]: ========== excelChatE2e summary: failCount=2 ==========
+run_exit=1

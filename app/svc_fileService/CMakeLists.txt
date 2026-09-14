@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
     ../proto/protoCode/fileService.pb.cc
     ../proto/protoCode/excelParseService.pb.cc   # 调用Excel解析子服务所需
     ../proto/protoCode/dbService.pb.cc           # ㉜ 桩回收：调用数据库子服务所需
+    ../proto/protoCode/aiService.pb.cc           # H14 桩回收：调用 AI 子服务所需
     ../data/fileData.cc
     ../data/worksheetData.cc
     ../data/odb/fileEntity-odb.cxx

@@ -10,6 +10,7 @@
 // 课件问题㉚纪律：pb.h 已随 fileBusiness.h 拉入，fdfs.h 必须在其后 + #undef byte 双保险
 #include "../proto/protoCode/excelParseService.pb.h"
 #include "../proto/protoCode/dbService.pb.h"   // ㉜ 桩回收：调用数据库子服务
+#include "../proto/protoCode/aiService.pb.h"   // H14 桩回收：调用 AI 子服务
 #include <bite_scaffold/fdfs.h>
 #ifdef byte
 #undef byte
@@ -129,7 +130,36 @@ bool FileBusiness::associateFileChatSession(const std::string& fileId,
         throw chat2Data::Chat2DataException(chat2Data::ErrorCode::FILE_INFO_SAVE_FAILED);
     }
     _fileInfoData->deleteFileInfoCache(fileId);
-    // 4. TODO(17章AI子服务)：更新聊天会话中的文件Id
+    // 4. 通过 AI 子服务更新聊天会话中的文件 Id（H14 桩回收：双向关联闭环）
+    //    AI 侧做归属校验（isSessionOwnedByUser）后把 fileId 记到会话上
+    // 4.1 获取 AI 子服务信道
+    auto aiChannel = _svcChannels->getNode(FLAGS_ai_service);
+    if (!aiChannel) {
+        ERR("Failed to get AIService channel");
+        throw chat2Data::Chat2DataException(chat2Data::ErrorCode::AI_UPDATE_SESSION_FILE_FAILED);
+    }
+    // 4.2 构建请求
+    chat2Data::AiService::UpdateSessionFileRequest request;
+    request.set_request_id(chat2Data::Utils::generateUuid());
+    request.set_user_id(userId);
+    request.set_chat_session_id(chatSessionId);
+    request.set_file_id(fileId);
+    // 4.3 发起 RPC 调用
+    chat2Data::AiService::AIService_Stub stub(aiChannel.get());
+    chat2Data::AiService::UpdateSessionFileResponse response;
+    brpc::Controller controller;
+    stub.UpdateSessionFile(&controller, &request, &response, nullptr);
+    // 4.4 检查结果
+    if (controller.Failed()) {
+        ERR("UpdateSessionFile RPC failed: {}", controller.ErrorText());
+        throw chat2Data::Chat2DataException(chat2Data::ErrorCode::AI_UPDATE_SESSION_FILE_FAILED);
+    }
+    if (response.error_code() != 0) {
+        ERR("UpdateSessionFile failed: errorCode={}, errorMsg={}",
+            response.error_code(), response.error_msg());
+        throw chat2Data::Chat2DataException(static_cast<chat2Data::ErrorCode>(response.error_code()));
+    }
+    INF("File and chat session associated: fileId={}, chatSessionId={}", fileId, chatSessionId);
     return true;
 }
 

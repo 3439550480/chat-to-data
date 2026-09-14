@@ -1,0 +1,14 @@
+=== 重编 ===
+[ 35%] Built target ai_chat_sdk
+[100%] Built target AIService
+9006 在听
+=== E2E ===
+[OK]   CreateSession (chat_session_id=session_1789390817_00000001)
+[OK]   GetSessions contains the new session
+[OK]   SendMessage SSE stream finished (data: [DONE] received)
+[OK]   SendMessage non-empty model content
+[OK]   GetSessionHistory has user+assistant messages (1/1)
+[OK]   DeleteSession success
+[OK]   session removed from list after delete
+summary: failCount=0
+e2e_exit=0

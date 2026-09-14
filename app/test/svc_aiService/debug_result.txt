@@ -1,0 +1,18 @@
+=== session: session_1789375644_00000002
+
+=== ai.log tail ===
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/LLMManager.cpp:22  ]register provider success, modelName = deepseek-chat
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/LLMManager.cpp:22  ]register provider success, modelName = gpt-4o-mini
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/LLMManager.cpp:22  ]register provider success, modelName = gemini-2.0-flash
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/LLMManager.cpp:22  ]register provider success, modelName = glm-5.3-flash
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:86  ]GLMProvider glm-5.3-flash registered successed (baseUrl=https://open.bigmodel.cn/api/paas/v4/chat/completions)
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:70  ]GLMProvider initModel success, model=glm-5.3-flash, endpoint=https://open.bigmodel.cn/api/paas/v4/chat/completions
+[08:05:45][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/LLMManager.cpp:40  ]init model success, modelName = glm-5.3-flash
+[08:45:07][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:201 ]GLMProvider sendMessageStream url: https://open.bigmodel.cn/api/paas/v4/chat/completions, model=glm-5.3-flash
+[08:45:07][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:276 ]GLMProvider sendMessageStream network error: Connection handling canceled
+[08:45:07][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:278 ]GLMProvider sendMessageStream detail: HTTP status code: 401, body: 
+[08:45:07][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:342 ]ChatSDK::sendMessageStream: send message to model glm-5.3-flash failed
+[08:47:24][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:201 ]GLMProvider sendMessageStream url: https://open.bigmodel.cn/api/paas/v4/chat/completions, model=glm-5.3-flash
+[08:47:24][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:276 ]GLMProvider sendMessageStream network error: Connection handling canceled
+[08:47:24][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:278 ]GLMProvider sendMessageStream detail: HTTP status code: 401, body: 
+[08:47:24][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:342 ]ChatSDK::sendMessageStream: send message to model glm-5.3-flash failed

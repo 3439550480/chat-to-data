@@ -1,0 +1,8 @@
+[13:00:17][info   ]: [/home/dev/chat2data/svc_aiService/aiServiceImpl.cc:253]: SendMessage called: requestId=e2e_3, userId=e2e_user, chatSessionId=session_1789390817_00000001, chatType=plain
+[13:00:20][error  ]: [/home/dev/chat2data/data/chatSessionData.cc:43]: Failed to save ChatSession to DB: chatSessionId=session_1789390817_00000001, error=1366 (HY000): Incorrect string value: '\xE5' for column 'title' at row 1
+[13:00:20][error  ]: [/home/dev/chat2data/svc_aiService/chatSessionMgr.cc:49]: Failed to save ChatSession to DB: chatSessionId=session_1789390817_00000001
+[13:00:20][error  ]: [/home/dev/chat2data/svc_aiService/aiMessageHandler.cc:491]: Failed to save session, chatSessionId=session_1789390817_00000001
+[13:02:38][info   ]: [/home/dev/chat2data/svc_aiService/aiServer.cc:137]: Service online: ExcelParserService at dev-env-service:9003
+[13:03:04][info   ]: [/home/dev/chat2data/svc_aiService/aiServiceImpl.cc:253]: SendMessage called: requestId=ec_6, userId=e2e_excel_user, chatSessionId=session_1789390984_00000002, chatType=excel
+[13:03:04][info   ]: [/home/dev/chat2data/svc_aiService/aiMessageHandler.cc:345]: GetExcelWorksheetTables success: fileId=78a1-fd4e84cc-0000, tableCount=0
+[13:03:04][error  ]: [/home/dev/chat2data/svc_aiService/aiMessageHandler.cc:706]: Chat2DataException in sendMessage: code=606, msg=[aiService]: 发送消息失败

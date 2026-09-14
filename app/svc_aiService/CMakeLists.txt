@@ -15,6 +15,8 @@ add_executable(${PROJECT_NAME}
     aiServiceImpl.cc
     aiBusiness.cc
     chatSessionMgr.cc
+    aiMessageHandler.cc
+    promptTemplate.cc
     ../proto/protoCode/aiService.pb.cc
     ../proto/protoCode/dbService.pb.cc
     ../proto/protoCode/excelParseService.pb.cc   # dbService import 的 WorksheetData 符号

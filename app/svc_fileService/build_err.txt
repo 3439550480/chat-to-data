@@ -1,0 +1,9 @@
+/usr/bin/ld: CMakeFiles/FileService.dir/fileBusiness.cc.o: warning: relocation against `_ZN3fLS16FLAGS_ai_serviceB5cxx11E' in read-only section `.text'
+/usr/bin/ld: CMakeFiles/FileService.dir/fileBusiness.cc.o: in function `fileService::FileBusiness::associateFileChatSession(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)':
+fileBusiness.cc:(.text+0x1193): undefined reference to `fLS::FLAGS_ai_service[abi:cxx11]'
+/usr/bin/ld: warning: creating DT_TEXTREL in a PIE
+collect2: error: ld returned 1 exit status
+make[2]: *** [CMakeFiles/FileService.dir/build.make:306: FileService] Error 1
+make[1]: *** [CMakeFiles/Makefile2:83: CMakeFiles/FileService.dir/all] Error 2
+make: *** [Makefile:91: all] Error 2
+build_exit=True

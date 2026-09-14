@@ -1,0 +1,14 @@
+=== .env 检查（只看长度）===
+GLM_API_KEY = len:49
+GLM_MODEL_NAME = len:13
+GLM_BASE_URL = len:53
+GLM_MODEL_DESC = len:0
+[OK]   CreateSession (chat_session_id=session_1789390190_00000001)
+[OK]   GetSessions contains the new session
+[FAIL] SendMessage no DONE marker: 
+[FAIL] SendMessage empty model content
+[FAIL] GetSessionHistory messages missing: {"request_id":"e2e_4","result":{"session_type":"plain","messages":[{"id":"msg_1789390190_00000001","role":"user","content":"请只回复四个字：连接成功","timestamp":1789390190}]}}
+[OK]   DeleteSession success
+[OK]   session removed from list after delete
+summary: failCount=3
+e2e_exit=1

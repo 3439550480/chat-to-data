@@ -36,7 +36,8 @@ DEFINE_string(log_format, "[%H:%M:%S][%-7l]: %v", "日志输出格式");
 DEFINE_string(log_path, "stdout", "日志输出路径");
 // 跨服务调用 key（fileBusiness.cc 使用，㉜两分法：调用 key 单列）
 DEFINE_string(excel_service, "ExcelParserService", "Excel解析子服务调用key");
-DEFINE_string(db_service, "DatabaseService", "数据库子服务调用key（等数据库子服务章节）");
+DEFINE_string(db_service, "DatabaseService", "数据库子服务调用key");
+DEFINE_string(ai_service, "AIService", "AI子服务调用key（H14：更新会话文件关联）");
 // 需要监听的服务名称（发现上游：AI/Excel解析/数据库）
 // 课件 StorageService 与用户子服务 watch 的 DatabaseService 不一致（㉜），统一后者
 DEFINE_string(watch_ai_service, "AIService", "AI子服务名称（watch）");

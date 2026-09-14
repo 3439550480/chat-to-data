@@ -1,0 +1,18 @@
+=== 进程/端口 ===
+AI进程存活
+9006 在听
+=== ai.log GLM/错误行 ===
+[12:49:42][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:86  ]GLMProvider glm-5.3-flash registered successed (baseUrl=https://open.bigmodel.cn/api/paas/v4/chat/completions)
+[12:49:42][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:70  ]GLMProvider initModel success, model=glm-5.3-flash, endpoint=https://open.bigmodel.cn/api/paas/v4/chat/completions
+[12:49:50][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:201 ]GLMProvider sendMessageStream url: https://open.bigmodel.cn/api/paas/v4/chat/completions, model=glm-5.3-flash
+[12:49:51][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:276 ]GLMProvider sendMessageStream network error: Connection handling canceled
+[12:49:51][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:278 ]GLMProvider sendMessageStream detail: HTTP status code: 401, body: 
+[12:49:51][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:342 ]ChatSDK::sendMessageStream: send message to model glm-5.3-flash failed
+=== 单条 SendMessage 原始响应 ===
+csid=session_1789390242_00000002
+
+=== ai.log GLM/错误行（第二次）===
+[12:50:42][aiService][info   ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:201 ]GLMProvider sendMessageStream url: https://open.bigmodel.cn/api/paas/v4/chat/completions, model=glm-5.3-flash
+[12:50:42][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:276 ]GLMProvider sendMessageStream network error: Connection handling canceled
+[12:50:42][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/GLMProvider.cpp:278 ]GLMProvider sendMessageStream detail: HTTP status code: 401, body: 
+[12:50:42][aiService][error  ][/home/dev/chat2data/third_party/ai_chat_sdk/src/ChatSDK.cpp:342 ]ChatSDK::sendMessageStream: send message to model glm-5.3-flash failed

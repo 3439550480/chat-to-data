@@ -1,0 +1,12 @@
+[OK]   GET /health healthy
+[OK]   register: gh6_gh61789536838@test.com
+[OK]   passwd/login (sessionId=b07e-2f9e0009-00...)
+[OK]   GetModels has modelList: {"errorCode":0,"errorMsg":"","requestId":"req_178953683906877226818740","result":{"modelList":[{"modelDesc":"GLM \u901a\u7528\u5bf9\u8bdd\u6a21\u578b","modelName":"glm-5.3-flash"}]}}
+[OK]   CreateSession (chatSessionId=session_1789536839_00000...)
+[OK]   chatSessionLists contains new session
+[OK]   sendStreamMessage stream finished (data: [DONE] x2 — GW2 双标记预期值 2)
+[OK]   sendStreamMessage first chunk: data: 连接...
+[OK]   GetHistory user=1 assistant=1
+[OK]   DeleteSession success
+[OK]   session removed from list after delete
+summary: failCount=0

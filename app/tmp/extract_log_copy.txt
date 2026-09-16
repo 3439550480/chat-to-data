@@ -1,0 +1,7 @@
+fitz FAIL: Traceback (most recent call last):
+  File "D:\Code\VScode\Chat2Data\.workbuddy\tmp\extract_ch20.py", line 15, in <module>
+    import fitz
+ModuleNotFoundError: No module named 'fitz'
+
+pdfplumber OK pages=53
+OUT chars=84564 -> D:\Code\VScode\Chat2Data\.workbuddy\tmp\pdf_text\20. 网关子服务下.txt

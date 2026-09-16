@@ -9,10 +9,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 添加可执行文件目标
+# pb 说明：20 章起网关要转发 RPC 到四个子服务，需链接它们的 proto 生成物；
+# excelParseService.pb 是 dbService.pb import 的 WorksheetData 符号来源
 add_executable(${PROJECT_NAME}
     main.cc
     gatewayServer.cc
     gatewayServiceImpl.cc
+    ../proto/protoCode/userService.pb.cc
+    ../proto/protoCode/fileService.pb.cc
+    ../proto/protoCode/dbService.pb.cc
+    ../proto/protoCode/excelParseService.pb.cc
+    ../proto/protoCode/aiService.pb.cc
 )
 
 # 依赖检查

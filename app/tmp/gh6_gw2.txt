@@ -1,0 +1,13 @@
+9000 在听
+===HEALTH===
+{
+	"service" : "GatewayService",
+	"status" : "healthy",
+	"timestamp" : 1789536678
+}
+===GWLOG===
+
+
+
+
+

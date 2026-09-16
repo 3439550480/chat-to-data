@@ -1,0 +1,2 @@
+36:        ChannelPtr getNode(const std::string &svc_name);
+37:        std::optional<std::string> getNodeAddr(const std::string &svc_name);

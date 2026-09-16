@@ -1,0 +1,7 @@
+CMakeCache.txt
+CMakeFiles
+GatewayService
+Makefile
+chat2Data.conf
+cmake_install.cmake
+logs

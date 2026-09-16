@@ -1,0 +1,11 @@
+9001 在听
+9002 在听
+9003 在听
+9004 在听
+9005 在听
+9006 在听
+9000 在听
+=== us.log tail ===
+[05:33:28][info   ]: [/home/dev/chat2data/svc_userService/userServer.cc:91]: Service online: NotifyService at dev-env-service:9002
+[05:33:28][info   ]: [/home/dev/chat2data/svc_userService/userServer.cc:95]: Service offline: AIService at dev-env-service:9006
+[05:33:29][info   ]: [/home/dev/chat2data/svc_userService/userServer.cc:91]: Service online: AIService at dev-env-service:9006

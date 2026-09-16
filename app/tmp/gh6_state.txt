@@ -1,0 +1,5 @@
+docker ps N/A in container
+===LISTEN===
+no listeners found
+===PROC===
+awk: line 1: syntax error at or near ,

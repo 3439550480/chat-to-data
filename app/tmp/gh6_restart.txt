@@ -1,0 +1,6 @@
+9000 在听
+{
+	"service" : "GatewayService",
+	"status" : "healthy",
+	"timestamp" : 1789536983
+}

@@ -1,0 +1,2 @@
+[100%] Built target GatewayService
+build_exit=0

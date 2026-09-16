@@ -1,0 +1,7 @@
+﻿fdfs-storage-service | Up 57 minutes
+mysql-service | Up 57 minutes (healthy)
+fdfs-tracker-service | Up 57 minutes
+dev-env-service | Up 57 minutes
+etcd-service | Up 57 minutes
+redis-service | Up 57 minutes (healthy)
+openmontage-redis-1 | Exited (0) 13 days ago

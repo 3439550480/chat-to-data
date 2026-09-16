@@ -1,0 +1,148 @@
+=== 0. FDFS storage 注册状态 ===
+=== 1. 服务健康检查/拉起 ===
+9003 未运行 → 拉起
+9004 未运行 → 拉起
+9005 未运行 → 拉起
+9006 未运行 → 拉起
+=== 2. 重建 AIService（AI1-附加/AI12 修复）===
+[ 35%] Built target ai_chat_sdk
+[100%] Built target AIService
+=== 3. 重启 AIService ===
+9006 在听
+=== 4. excel E2E ===
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:64]: [OK]   test xlsx built
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:92]: [OK]   UploadFileInfo
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:94]: [OK]   got file_id
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:106]: [OK]   UploadFile (excel 解析+建表入库完成)
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:117]: [OK]   AI.CreateSession (excel)
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:119]: [OK]   got chat_session_id
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:131]: [OK]   HandleFileChatSessionMap (文件↔会话双向关联，H14 链路)
+[04:32:41][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:147]: [OK]   GetSessions shows excel session
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:159]: [OK]   SendMessage HTTP 响应收到
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:161]: [OK]   excel 流程走完（data: [DONE]）
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:164]: [OK]   excel 流程产出图表数据块或明确错误（宽松断言）
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:165]: SSE 响应前 600 字符:
+data: <T
+
+data: ITLE
+
+data: _START
+
+data: >
+
+
+data: 各部门
+
+data: 薪资
+
+data: 总额
+
+data: 降
+
+data: 序
+
+data: 统计
+
+data: 
+
+
+data: <T
+
+data: ITLE
+
+data: _END
+
+data: >
+
+
+
+data: <T
+
+data: ASK
+
+data: S
+
+data: _START
+
+data: >
+
+
+data: 1
+
+data: .
+
+data:  
+
+data: 识别
+
+data: 分组
+
+data: 维度
+
+data: （
+
+data: 部门
+
+data: ）
+
+data: 和
+
+data: 聚合
+
+data: 指标
+
+data: （
+
+data: 薪资
+
+data: 总额
+
+data: ）
+
+
+data: 2
+
+data: .
+
+data:  过
+
+data: 滤
+
+data: 部门
+
+data: 或
+
+data: 薪资
+
+data: 为
+
+data: 空
+
+data: 的无
+
+data: 效
+
+data: 数据
+
+data: 
+
+
+data: 3
+
+data: .
+
+da
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:175]: [OK]   DeleteSession
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:185]: [OK]   DeleteFile（级联删表）
+[04:32:55][info   ]: [/home/dev/chat2data/test/svc_aiService/excelChatE2e/main.cc:188]: ========== excelChatE2e summary: failCount=0 ==========
+excel_exit=0
+=== 5. plain E2E 回归 ===
+[OK]   CreateSession (chat_session_id=session_1789533175_00000002)
+[OK]   GetSessions contains the new session
+[OK]   SendMessage SSE stream finished (data: [DONE] received)
+[OK]   SendMessage non-empty model content
+[OK]   GetSessionHistory has user+assistant messages (1/1)
+[OK]   DeleteSession success
+[OK]   session removed from list after delete
+summary: failCount=0
+e2e_exit=0

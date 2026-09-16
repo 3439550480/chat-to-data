@@ -31,14 +31,20 @@ public:
 private:
     // ==================== 响应工具函数 ====================
     // 课件原版未在头文件中声明这两个函数，导致 .cc 中调用时报 "was not declared in this scope"，此处补充
+    // GW6：课件 20 章定义带 statusCode 形参，但所有 handler 调用点均省略（4参/2参）——
+    //      用默认参数桥接（默认 200，业务错误码在 body 的 errorCode 字段表达）
     // 发送JSON响应
-    void sendJsonResponse(httplib::Response& res, const std::string& jsonData, int statusCode);
+    void sendJsonResponse(httplib::Response& res, const std::string& jsonData, int statusCode = 200);
     // 发送错误响应
     void sendErrorResponse(httplib::Response& res,
                            const std::string& requestId,
                            int errorCode,
                            const std::string& errorMsg,
-                           int statusCode);
+                           int statusCode = 200);
+    // 检测会话是否有效（20 章 1.3）：走 UserService.IsSessionValid，
+    // 通过引用参数带出 userId；课件头文件遗漏此声明（与 sendJsonResponse 同类），此处补充
+    bool validateSession(const std::string& requestId, const std::string& sessionId,
+                         httplib::Response& res, std::string& userId);
 
     // ==================== 健康检测 ====================
     void handleHealthCheck(const httplib::Request& req, httplib::Response& res);

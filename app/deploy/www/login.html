@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - Chat2Excel</title>
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- 头部 -->
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="fas fa-robot"></i>
+                <h1>Chat2Excel</h1>
+            </div>
+            <p class="auth-subtitle">AI驱动的Excel分析工具</p>
+        </div>
+
+        <!-- 登录方式切换标签 -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="password-login">
+                <i class="fas fa-key"></i> 密码登录
+            </button>
+            <button class="auth-tab" data-tab="email-login">
+                <i class="fas fa-envelope"></i> 邮箱登录
+            </button>
+        </div>
+
+        <!-- 密码登录表单 -->
+        <div id="password-login" class="auth-form-container active">
+            <form id="password-login-form" class="auth-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label">
+                        用户名/邮箱 <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="passwd-username" 
+                        class="form-input" 
+                        placeholder="请输入用户昵称或邮箱"
+                        required
+                        autocomplete="off"
+                        name="login-username-field"
+                    >
+                    <div id="passwd-username-msg" class="validation-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        密码 <span class="required">*</span>
+                    </label>
+                    <div class="password-input-wrapper">
+                        <input 
+                            type="password" 
+                            id="passwd-password" 
+                            class="form-input" 
+                            placeholder="请输入用户密码"
+                            required
+                            autocomplete="off"
+                            data-lpignore="true"
+                            data-form-type="other"
+                            name="login-password-field"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword('passwd-password')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="passwd-password-msg" class="validation-message"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="passwd-login-btn">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </button>
+            </form>
+        </div>
+
+        <!-- 邮箱登录表单 -->
+        <div id="email-login" class="auth-form-container">
+            <form id="email-login-form" class="auth-form" autocomplete="off">
+                <div class="form-group">
+                    <label class="form-label">
+                        邮箱 <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email-address" 
+                        class="form-input" 
+                        placeholder="请输入用户邮箱"
+                        required
+                        autocomplete="off"
+                        name="login-email-field"
+                    >
+                    <div id="email-address-msg" class="validation-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        验证码 <span class="required">*</span>
+                    </label>
+                    <div class="code-input-group">
+                        <input 
+                            type="text" 
+                            id="verify-code" 
+                            class="form-input" 
+                            placeholder="请输入验证码"
+                            required
+                            maxlength="6"
+                            autocomplete="off"
+                            name="verify-code-field"
+                        >
+                        <button type="button" class="get-code-btn" id="get-code-btn" onclick="getVerifyCode()">
+                            获取验证码
+                        </button>
+                    </div>
+                    <div id="verify-code-msg" class="validation-message"></div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="email-login-btn">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </button>
+            </form>
+        </div>
+
+        <!-- 底部链接 -->
+        <div class="auth-footer">
+            还没有账号？<a href="register.html">点击注册</a>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // 标签切换
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 更新标签状态
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 切换表单显示
+                const tabName = this.getAttribute('data-tab');
+                document.querySelectorAll('.auth-form-container').forEach(form => {
+                    form.classList.remove('active');
+                });
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // 切换密码可见性
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const btn = input.nextElementSibling;
+            const icon = btn.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `message-toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // 验证码相关变量
+        let codeId = null;
+        let countdown = 0;
+        let countdownTimer = null;
+
+        // 获取验证码
+        async function getVerifyCode() {
+            const emailInput = document.getElementById('email-address');
+            const email = emailInput.value.trim();
+            const msgDiv = document.getElementById('email-address-msg');
+            const btn = document.getElementById('get-code-btn');
+            
+            // 验证邮箱
+            if (!email) {
+                msgDiv.className = 'validation-message error';
+                msgDiv.textContent = '请输入邮箱地址';
+                emailInput.classList.add('error');
+                return;
+            }
+            
+            const emailValidation = EmailValidator.getValidationResult(email);
+            if (!emailValidation.valid) {
+                msgDiv.className = 'validation-message error';
+                msgDiv.textContent = emailValidation.message;
+                emailInput.classList.add('error');
+                return;
+            }
+            
+            // 清除错误状态
+            emailInput.classList.remove('error');
+            msgDiv.className = 'validation-message';
+            msgDiv.textContent = '';
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
+                
+                const response = await AuthAPI.getCode(email);
+                
+                if (response.errorCode === 0) {
+                    codeId = response.result.codeId;
+                    showMessage('验证码已发送到您的邮箱，请注意查收', 'success');
+                    
+                    // 开始倒计时（5分钟 = 300秒）
+                    countdown = 300;
+                    startCountdown();
+                } else {
+                    showMessage(response.errorMsg || '获取验证码失败', 'error');
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                }
+            } catch (error) {
+                console.error('获取验证码失败:', error);
+                showMessage('获取验证码失败，请检查网络连接', 'error');
+                btn.disabled = false;
+                btn.textContent = '获取验证码';
+            }
+        }
+
+        // 倒计时
+        function startCountdown() {
+            const btn = document.getElementById('get-code-btn');
+            
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+            
+            countdownTimer = setInterval(() => {
+                countdown--;
+                
+                if (countdown > 0) {
+                    const minutes = Math.floor(countdown / 60);
+                    const seconds = countdown % 60;
+                    btn.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    clearInterval(countdownTimer);
+                    btn.disabled = false;
+                    btn.textContent = '重新获取';
+                    codeId = null;
+                }
+            }, 1000);
+        }
+
+        // 密码登录表单提交
+        document.getElementById('password-login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('passwd-username').value.trim();
+            const password = document.getElementById('passwd-password').value;
+            const btn = document.getElementById('passwd-login-btn');
+            
+            // 验证输入
+            if (!username) {
+                showMessage('请输入用户名或邮箱', 'error');
+                return;
+            }
+            
+            if (!password) {
+                showMessage('请输入密码', 'error');
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+                
+                const response = await AuthAPI.passwdLogin(username, password);
+                
+                if (response.errorCode === 0) {
+                    // 登录成功，保存会话ID
+                    const sessionId = response.result.sessionId;
+                    console.log('[密码登录] 登录成功，sessionId:', sessionId);
+                    
+                    SessionManager.saveSessionId(sessionId);
+                    console.log('[密码登录] sessionId已保存到localStorage');
+                    
+                    // 设置标志位，表示这是刚登录成功的
+                    // 这样index.html加载时可以跳过session验证或延迟验证
+                    sessionStorage.setItem('justLoggedIn', 'true');
+                    console.log('[密码登录] justLoggedIn标志已设置');
+                    
+                    // 验证保存是否成功
+                    const savedSessionId = SessionManager.getSessionId();
+                    const justLoggedInFlag = sessionStorage.getItem('justLoggedIn');
+                    console.log('[密码登录] 验证 - savedSessionId:', savedSessionId);
+                    console.log('[密码登录] 验证 - justLoggedInFlag:', justLoggedInFlag);
+                    
+                    showMessage('登录成功！', 'success');
+                    
+                    // 跳转到主页面
+                    setTimeout(() => {
+                        console.log('[密码登录] 准备跳转到index.html');
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    // 根据错误码显示不同的提示
+                    let errorMsg = '登录失败';
+                    switch (response.errorCode) {
+                        case 504:
+                            errorMsg = '该用户不存在';
+                            break;
+                        case 505:
+                            errorMsg = '用户昵称错误';
+                            break;
+                        case 506:
+                            errorMsg = '用户密码错误';
+                            break;
+                        default:
+                            errorMsg = response.errorMsg || '登录失败';
+                    }
+                    showMessage(errorMsg, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+                }
+            } catch (error) {
+                console.error('登录失败:', error);
+                showMessage('登录失败，请检查网络连接', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+            }
+        });
+
+        // 邮箱登录表单提交
+        document.getElementById('email-login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email-address').value.trim();
+            const verifyCode = document.getElementById('verify-code').value.trim();
+            const btn = document.getElementById('email-login-btn');
+            
+            // 验证输入
+            if (!email) {
+                showMessage('请输入邮箱地址', 'error');
+                return;
+            }
+            
+            const emailValidation = EmailValidator.getValidationResult(email);
+            if (!emailValidation.valid) {
+                showMessage(emailValidation.message, 'error');
+                return;
+            }
+            
+            if (!verifyCode) {
+                showMessage('请输入验证码', 'error');
+                return;
+            }
+            
+            if (!codeId) {
+                showMessage('请先获取验证码', 'error');
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+                
+                const response = await AuthAPI.vcodeLogin(email, verifyCode, codeId);
+                
+                if (response.errorCode === 0) {
+                    // 登录成功，保存会话ID
+                    const sessionId = response.result.sessionId || response.result.codeId;
+                    console.log('[邮箱登录] 登录成功，sessionId:', sessionId);
+                    
+                    SessionManager.saveSessionId(sessionId);
+                    console.log('[邮箱登录] sessionId已保存到localStorage');
+                    
+                    // 设置标志位，表示这是刚登录成功的
+                    // 这样index.html加载时可以跳过session验证或延迟验证
+                    sessionStorage.setItem('justLoggedIn', 'true');
+                    console.log('[邮箱登录] justLoggedIn标志已设置');
+                    
+                    // 验证保存是否成功
+                    const savedSessionId = SessionManager.getSessionId();
+                    const justLoggedInFlag = sessionStorage.getItem('justLoggedIn');
+                    console.log('[邮箱登录] 验证 - savedSessionId:', savedSessionId);
+                    console.log('[邮箱登录] 验证 - justLoggedInFlag:', justLoggedInFlag);
+                    
+                    showMessage('登录成功！', 'success');
+                    
+                    // 跳转到主页面
+                    setTimeout(() => {
+                        console.log('[邮箱登录] 准备跳转到index.html');
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    // 根据错误码显示不同的提示
+                    let errorMsg = '登录失败';
+                    switch (response.errorCode) {
+                        case 502:
+                            errorMsg = '验证码错误或已过期';
+                            break;
+                        case 503:
+                            errorMsg = '登录失败';
+                            break;
+                        default:
+                            errorMsg = response.errorMsg || '登录失败';
+                    }
+                    showMessage(errorMsg, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+                }
+            } catch (error) {
+                console.error('登录失败:', error);
+                showMessage('登录失败，请检查网络连接', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+            }
+        });
+
+        // 【修复】移除页面加载时自动调用trySessionLogin的逻辑
+        // 原因：1. 避免在服务不可用时频繁请求
+        //       2. 用户访问登录页面时，应该显示登录表单，而不是自动检查会话
+        //       3. 会话检查应该在index.html中进行，而不是login.html
+        // 如果用户已经有有效会话，应该在访问index.html时自动跳转，而不是在login.html中检查
+    </script>
+</body>
+</html>
+

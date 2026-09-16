@@ -19,3 +19,22 @@ app/proto/protoCode/
 *.o
 *.d
 *.tmp
+
+# ===== 部署资产中的构建/运行产物（P4）=====
+# collect.sh 收拢产物（7 二进制 + 网关 conf + www 副本，约 600MB；容器内 make 后可再生）
+app/deploy/bin/
+# 部署验证的抓取快照（curl 抓取的首页 HTML，一次性）
+app/deploy/p4_host_index.html
+
+# ===== 临时工作目录（课件 PDF 抽取、官方仓库 clone、编译/调试日志等）=====
+app/tmp/
+
+# ===== 日志与备份（通用规则：日志与 .bak 备份不进库）=====
+*.log
+*.bak
+
+# ===== IDE 与系统杂项 =====
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

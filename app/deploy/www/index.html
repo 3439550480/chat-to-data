@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat2Excel - AI驱动的Excel分析工具</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 头部区域 -->
+    <header class="header">
+        <div class="header-left">
+            <i class="fas fa-robot header-icon"></i>
+            <span class="header-title">Chat2Excel</span>
+        </div>
+        <div class="header-right">
+            <div class="user-info" id="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="user-nickname">加载中...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <div class="main-container">
+        <!-- 左侧导航栏 -->
+        <nav class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="chat">
+                    <i class="fas fa-comments"></i>
+                    <span>智能Excel助手</span>
+                </li>
+                <li class="nav-item" data-page="database">
+                    <i class="fas fa-database"></i>
+                    <span>智能DB助手</span>
+                </li>
+                <li class="nav-item" data-page="files">
+                    <i class="fas fa-folder"></i>
+                    <span>我的文件</span>
+                </li>
+                <li class="nav-item" data-page="history">
+                    <i class="fas fa-history"></i>
+                    <span>历史会话</span>
+                </li>
+                <li class="nav-item" data-page="profile">
+                    <i class="fas fa-user"></i>
+                    <span>个人中心</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- 右侧内容区域 -->
+        <div class="content-area">
+            <!-- 模型对话页面 -->
+            <div id="chat-page" class="page active">
+                <div class="chat-container">
+                    <!-- 文件预览和结果分析区域 -->
+                    <div class="preview-section">
+                        <div class="tab-header">
+                            <button class="tab-btn active" data-tab="file-preview">文件预览</button>
+                            <button class="tab-btn" data-tab="result-analysis">结果分析</button>
+                        </div>
+                        
+                        <!-- 文件预览标签页 -->
+                        <div id="file-preview" class="tab-content active">
+                            <div class="file-preview-container">
+                                <div class="upload-prompt" id="upload-prompt">
+                                    <i class="fas fa-file-excel"></i>
+                                    <p>请上传Excel文件进行预览</p>
+                                </div>
+                                <div class="excel-preview" id="excel-preview" style="display: none;">
+                                    <div class="excel-header">
+                                        <h4 id="excel-file-name"></h4>
+                                    </div>
+                                    <div class="excel-table-container">
+                                        <table class="excel-table" id="excel-table">
+                                            <!-- Excel表格内容将通过JavaScript动态生成 -->
+                                        </table>
+                                    </div>
+                                    <div class="excel-footer">
+                                        <div class="sheet-tabs" id="sheet-tabs"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Excel文件预览修改浮动按钮 -->
+                                <div id="excel-preview-float-button" class="preview-float-btn excel-preview-btn hidden" draggable="true">
+                                    <button class="preview-btn" onclick="toggleExcelPreviewMode()">
+                                        <span class="btn-icon">👁️</span>
+                                        <span class="btn-text">预览修改</span>
+                                        <span class="modification-indicator hidden">●</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 结果分析标签页 -->
+                        <div id="result-analysis" class="tab-content">
+                            <div class="result-container">
+                                <div class="result-content" id="result-content">
+                                    <!-- 模型回复结果将显示在这里 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模型聊天区域 -->
+                    <div class="chat-section">
+                        <div class="chat-header">
+                            <span class="chat-title">Chat2Excel</span>
+                            <button class="new-session-btn" id="new-session-btn">
+                                <i class="fas fa-plus"></i>新建会话
+                            </button>
+                        </div>
+                        
+                        <!-- 聊天消息显示区域 -->
+                        <div class="chat-messages" id="chat-messages">
+                            <!-- 聊天消息将通过JavaScript动态生成 -->
+                        </div>
+                        
+                        <!-- 用户输入区域 -->
+                        <div class="chat-input-container">
+                            <div class="input-toolbar">
+                                <div class="toolbar-left">
+                                    <input type="file" id="file-upload" accept=".xlsx" style="display: none;">
+                                    <button class="upload-btn" id="upload-btn">
+                                        <i class="fas fa-file-upload"></i>
+                                    </button>
+                                    <select class="model-select" id="model-select">
+                                        <!-- 模型选项将通过JavaScript动态生成 -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-area">
+                                <textarea 
+                                    id="message-input" 
+                                    placeholder="请输入对于上传文件需要处理的问题（按回车发送，Shift+回车换行）"
+                                    rows="3"
+                                ></textarea>
+                                <button class="send-btn" id="send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的文件页面 -->
+            <div id="files-page" class="page">
+                <div class="files-container">
+                    <h2>我的文件</h2>
+                    <div class="files-list" id="files-list">
+                        <!-- 文件列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史会话页面 -->
+            <div id="history-page" class="page">
+                <div class="history-container">
+                    <h2>历史会话</h2>
+                    <div class="sessions-list" id="sessions-list">
+                        <!-- 会话列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人中心页面 -->
+            <div id="profile-page" class="page">
+                <div class="profile-container">
+                    <h2>个人中心</h2>
+                    
+                    <!-- 用户信息卡片 -->
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="profile-info">
+                                <h3 id="profile-nickname">加载中...</h3>
+                                <p id="profile-email">加载中...</p>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="logout-btn" onclick="handleLogout()">
+                                <i class="fas fa-sign-out-alt"></i> 退出登录
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 我的文件列表 -->
+                    <div class="profile-section">
+                        <h3>我的文件</h3>
+                        <div class="profile-files-list" id="profile-files-list">
+                            <!-- 文件列表将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据库对话页面 -->
+            <div id="db-chat-page" class="page">
+                <div class="chat-container">
+                    <!-- 表预览和结果分析区域 -->
+                    <div class="preview-section">
+                        <div class="tab-header">
+                            <button class="tab-btn active" data-tab="table-preview">表预览</button>
+                            <button class="tab-btn" data-tab="result-analysis">结果分析</button>
+                        </div>
+                        
+                        <!-- 表预览标签页 -->
+                        <div id="table-preview" class="tab-content active">
+                            <div class="file-preview-container">
+                                <div class="upload-prompt" id="table-upload-prompt">
+                                    <i class="fas fa-database"></i>
+                                    <p>请连接数据库进行表预览</p>
+                                </div>
+                                <div class="excel-preview" id="table-preview-content" style="display: none;">
+                                    <div class="excel-header">
+                                        <h4 id="table-name"></h4>
+                                    </div>
+                                    <div class="excel-table-container">
+                                        <table class="excel-table" id="table-data">
+                                            <!-- 表数据将通过JavaScript动态生成 -->
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- 预览修改浮动按钮 -->
+                                <div id="preview-float-button" class="preview-float-btn hidden" draggable="true">
+                                    <button class="preview-btn" onclick="togglePreviewMode()">
+                                        <span class="btn-icon">👁️</span>
+                                        <span class="btn-text">预览修改</span>
+                                        <span class="modification-indicator hidden">●</span>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        <!-- 结果分析标签页 -->
+                        <div id="db-result-analysis" class="tab-content">
+                            <div class="result-container">
+                                <div class="result-content" id="db-result-content">
+                                    <!-- 模型回复结果将显示在这里 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 数据库聊天区域 -->
+                    <div class="chat-section">
+                        <div class="chat-header">
+                            <span class="chat-title">Chat2DB</span>
+                            <select class="table-select" id="db-table-select" style="margin-left: 10px; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="">选择表...</option>
+                            </select>
+                            <button class="new-session-btn" id="db-new-session-btn" style="margin-left: auto;">
+                                <i class="fas fa-plus"></i>新建会话
+                            </button>
+                        </div>
+                        
+                        <!-- 聊天消息显示区域 -->
+                        <div class="chat-messages" id="db-chat-messages">
+                            <!-- 聊天消息将通过JavaScript动态生成 -->
+                        </div>
+                        
+                        <!-- 用户输入区域 -->
+                        <div class="chat-input-container">
+                            <div class="input-toolbar">
+                                <div class="toolbar-left">
+                                    <select class="model-select" id="db-model-select">
+                                        <!-- 模型选项将通过JavaScript动态生成 -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-area">
+                                <textarea 
+                                    id="db-message-input" 
+                                    placeholder="请输入对于数据库表需要处理的问题（按回车发送，Shift+回车换行）"
+                                    rows="3"
+                                ></textarea>
+                                <button class="send-btn" id="db-send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据库连接页面 -->
+            <div id="database-page" class="page">
+                <div class="database-container">
+                    <h2>连接数据库</h2>
+                    
+                    <!-- 已连接数据库区域 -->
+                    <div id="connected-db-section" class="connected-db-section" style="display: none;">
+                        <h3>已连接的数据库</h3>
+                        <div id="connected-db-list" class="connected-db-list">
+                            <!-- 已连接数据库卡片将动态生成 -->
+                        </div>
+                        <div class="divider"></div>
+                    </div>
+                    
+                    <!-- 数据库类型标签页 -->
+                    <div class="db-tab-header">
+                        <button class="db-tab-btn active" data-db-type="mysql">
+                            <i class="fas fa-database"></i>
+                            <span>MySQL</span>
+                        </button>
+                        <button class="db-tab-btn" data-db-type="sqlite">
+                            <i class="fas fa-database"></i>
+                            <span>SQLite</span>
+                        </button>
+                    </div>
+
+                    <!-- MySQL连接表单 -->
+                    <div id="mysql-form" class="db-form active">
+                        <div class="form-container">
+                            <h3>MySQL 连接配置</h3>
+                            <form id="mysql-connection-form" class="connection-form">
+                                <div class="form-group">
+                                    <label for="mysql-host">
+                                        <i class="fas fa-server"></i> 主机地址
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="mysql-host" 
+                                        name="host" 
+                                        placeholder="例如: localhost 或 192.168.1.100"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="mysql-port">
+                                        <i class="fas fa-network-wired"></i> 端口
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="mysql-port" 
+                                        name="port" 
+                                        placeholder="3306"
+                                        value="3306"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="mysql-database">
+                                        <i class="fas fa-database"></i> 数据库名
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="mysql-database" 
+                                        name="database" 
+                                        placeholder="请输入数据库名称"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="mysql-username">
+                                        <i class="fas fa-user"></i> 用户名
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="mysql-username" 
+                                        name="username" 
+                                        placeholder="请输入用户名"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="mysql-password">
+                                        <i class="fas fa-lock"></i> 密码
+                                    </label>
+                                    <input 
+                                        type="password" 
+                                        id="mysql-password" 
+                                        name="password" 
+                                        placeholder="请输入密码"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="mysql-charset">
+                                        <i class="fas fa-language"></i> 字符集
+                                    </label>
+                                    <select id="mysql-charset" name="charset">
+                                        <option value="utf8mb4" selected>utf8mb4</option>
+                                        <option value="utf8">utf8</option>
+                                        <option value="latin1">latin1</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="connect-btn">
+                                        <i class="fas fa-plug"></i> 连接
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- SQLite连接表单 -->
+                    <div id="sqlite-form" class="db-form">
+                        <div class="form-container">
+                            <h3>SQLite 连接配置</h3>
+                            <form id="sqlite-connection-form" class="connection-form">
+                                <div class="form-group">
+                                    <label for="sqlite-file-path">
+                                        <i class="fas fa-file"></i> 数据库文件路径
+                                    </label>
+                                    <div class="file-input-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="sqlite-file-path" 
+                                            name="filePath" 
+                                            placeholder="请先点击浏览按钮选择SQLite文件"
+                                            readonly
+                                        >
+                                        <button type="button" class="browse-btn" id="sqlite-browse-btn">
+                                            <i class="fas fa-folder-open"></i> 浏览
+                                        </button>
+                                        <button type="button" class="browse-btn" id="sqlite-upload-btn" style="display: none;">
+                                            <i class="fas fa-upload"></i> 上传
+                                        </button>
+                                    </div>
+                                    <input type="file" id="sqlite-file-input" accept=".db,.sqlite,.sqlite3" style="display: none;">
+                                    <input type="hidden" id="sqlite-file-id" name="fileId">
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="connect-btn">
+                                        <i class="fas fa-plug"></i> 连接
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>处理中...</p>
+        </div>
+    </div>
+
+    <!-- 引入ECharts图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <!-- JavaScript文件引入 -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/chat-json-parser.js"></script> <!-- 新增：纯JSON格式解析器 -->
+    <script src="js/chat.js"></script>
+    <script src="js/file.js"></script>
+    <script src="js/auth-handler.js"></script>
+    <script src="js/preview-manager.js"></script>
+</body>
+</html>

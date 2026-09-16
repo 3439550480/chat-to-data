@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Chat2Excel</title>
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- 头部 -->
+        <div class="auth-header">
+            <div class="auth-logo">
+                <i class="fas fa-robot"></i>
+                <h1>Chat2Excel</h1>
+            </div>
+            <p class="auth-subtitle">注册账号，开启AI分析之旅</p>
+        </div>
+
+        <!-- 注册表单 -->
+        <form id="register-form" class="auth-form" autocomplete="off">
+            <!-- 用户昵称 -->
+            <div class="form-group">
+                <label class="form-label">
+                    用户昵称 <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="nickname" 
+                    class="form-input" 
+                    placeholder="请输入用户昵称"
+                    required
+                    autocomplete="off"
+                    name="nickname-field"
+                >
+                <div id="nickname-msg" class="validation-message"></div>
+            </div>
+
+            <!-- 邮箱 -->
+            <div class="form-group">
+                <label class="form-label">
+                    邮箱 <span class="required">*</span>
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    class="form-input" 
+                    placeholder="请输入邮箱地址"
+                    required
+                    autocomplete="off"
+                    name="email-field"
+                >
+                <div id="email-msg" class="validation-message"></div>
+            </div>
+
+            <!-- 密码 -->
+            <div class="form-group">
+                <label class="form-label">
+                    密码 <span class="required">*</span>
+                </label>
+                <div class="password-input-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-input" 
+                        placeholder="请输入密码（至少8位，包含两种字符类型）"
+                        required
+                        autocomplete="off"
+                        autocomplete="new-password"
+                        data-lpignore="true"
+                        data-form-type="other"
+                        name="password-field"
+                    >
+                    <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-strength">
+                    <div class="strength-bars">
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                    </div>
+                    <div class="strength-text" id="password-strength-text"></div>
+                </div>
+                <div id="password-msg" class="validation-message"></div>
+            </div>
+
+            <!-- 确认密码 -->
+            <div class="form-group">
+                <label class="form-label">
+                    确认密码 <span class="required">*</span>
+                </label>
+                <div class="password-input-wrapper">
+                    <input 
+                        type="password" 
+                        id="confirm-password" 
+                        class="form-input" 
+                        placeholder="请再次输入密码"
+                        required
+                        autocomplete="off"
+                        autocomplete="new-password"
+                        data-lpignore="true"
+                        data-form-type="other"
+                        name="confirm-password-field"
+                    >
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirm-password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div id="confirm-password-msg" class="validation-message"></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="register-btn">
+                <i class="fas fa-user-plus"></i> 注册
+            </button>
+        </form>
+
+        <!-- 底部链接 -->
+        <div class="auth-footer">
+            已有账号？<a href="login.html">点击登录</a>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // 切换密码可见性
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const btn = input.nextElementSibling;
+            const icon = btn.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `message-toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // 验证状态
+        let nicknameValid = false;
+        let emailValid = false;
+        let passwordValid = false;
+        let confirmPasswordValid = false;
+
+        // 昵称验证（防抖）
+        let nicknameTimeout;
+        const nicknameInput = document.getElementById('nickname');
+        const nicknameMsg = document.getElementById('nickname-msg');
+        
+        nicknameInput.addEventListener('input', function() {
+            clearTimeout(nicknameTimeout);
+            const nickname = this.value.trim();
+            
+            if (!nickname) {
+                this.classList.remove('success', 'error');
+                nicknameMsg.className = 'validation-message';
+                nicknameMsg.textContent = '';
+                nicknameValid = false;
+                return;
+            }
+            
+            nicknameTimeout = setTimeout(async () => {
+                try {
+                    nicknameMsg.className = 'validation-message info';
+                    nicknameMsg.textContent = '检测中...';
+                    
+                    const response = await AuthAPI.validNickname(nickname);
+                    
+                    if (response.errorCode === 0) {
+                        nicknameInput.classList.remove('error');
+                        nicknameInput.classList.add('success');
+                        nicknameMsg.className = 'validation-message success';
+                        nicknameMsg.textContent = '✓ 昵称可用';
+                        nicknameValid = true;
+                    } else if (response.errorCode === 501) {
+                        nicknameInput.classList.remove('success');
+                        nicknameInput.classList.add('error');
+                        nicknameMsg.className = 'validation-message error';
+                        nicknameMsg.textContent = '✗ 该昵称已被占用';
+                        nicknameValid = false;
+                    } else {
+                        nicknameInput.classList.remove('success');
+                        nicknameInput.classList.add('error');
+                        nicknameMsg.className = 'validation-message error';
+                        nicknameMsg.textContent = '✗ 检测失败，请重试';
+                        nicknameValid = false;
+                    }
+                } catch (error) {
+                    console.error('昵称检测失败:', error);
+                    nicknameMsg.className = 'validation-message error';
+                    nicknameMsg.textContent = '✗ 检测失败，请检查网络';
+                    nicknameValid = false;
+                }
+            }, 500);
+        });
+
+        // 邮箱验证（防抖）
+        let emailTimeout;
+        const emailInput = document.getElementById('email');
+        const emailMsg = document.getElementById('email-msg');
+        
+        emailInput.addEventListener('input', function() {
+            clearTimeout(emailTimeout);
+            const email = this.value.trim();
+            
+            if (!email) {
+                this.classList.remove('success', 'error');
+                emailMsg.className = 'validation-message';
+                emailMsg.textContent = '';
+                emailValid = false;
+                return;
+            }
+            
+            // 先验证格式
+            const emailValidation = EmailValidator.getValidationResult(email);
+            if (!emailValidation.valid) {
+                this.classList.remove('success');
+                this.classList.add('error');
+                emailMsg.className = 'validation-message error';
+                emailMsg.textContent = '✗ ' + emailValidation.message;
+                emailValid = false;
+                return;
+            }
+            
+            emailTimeout = setTimeout(async () => {
+                try {
+                    emailMsg.className = 'validation-message info';
+                    emailMsg.textContent = '检测中...';
+                    
+                    const response = await AuthAPI.validEmail(email);
+                    
+                    if (response.errorCode === 0) {
+                        emailInput.classList.remove('error');
+                        emailInput.classList.add('success');
+                        emailMsg.className = 'validation-message success';
+                        emailMsg.textContent = '✓ 邮箱可用';
+                        emailValid = true;
+                    } else if (response.errorCode === 501) {
+                        emailInput.classList.remove('success');
+                        emailInput.classList.add('error');
+                        emailMsg.className = 'validation-message error';
+                        emailMsg.textContent = '✗ 该邮箱已被注册';
+                        emailValid = false;
+                    } else {
+                        emailInput.classList.remove('success');
+                        emailInput.classList.add('error');
+                        emailMsg.className = 'validation-message error';
+                        emailMsg.textContent = '✗ 检测失败，请重试';
+                        emailValid = false;
+                    }
+                } catch (error) {
+                    console.error('邮箱检测失败:', error);
+                    emailMsg.className = 'validation-message error';
+                    emailMsg.textContent = '✗ 检测失败，请检查网络';
+                    emailValid = false;
+                }
+            }, 500);
+        });
+
+        // 密码验证
+        const passwordInput = document.getElementById('password');
+        const passwordMsg = document.getElementById('password-msg');
+        const strengthBars = document.querySelectorAll('.strength-bar');
+        const strengthText = document.getElementById('password-strength-text');
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            if (!password) {
+                this.classList.remove('success', 'error');
+                passwordMsg.className = 'validation-message';
+                passwordMsg.textContent = '';
+                strengthBars.forEach(bar => bar.classList.remove('active', 'weak', 'medium'));
+                strengthText.textContent = '';
+                passwordValid = false;
+                return;
+            }
+            
+            // 验证密码
+            const validation = PasswordValidator.validate(password);
+            const strength = PasswordValidator.getStrength(password);
+            
+            // 更新强度条
+            strengthBars.forEach((bar, index) => {
+                if (index < strength) {
+                    bar.classList.add('active');
+                    if (strength <= 2) {
+                        bar.classList.add('weak');
+                    } else if (strength <= 3) {
+                        bar.classList.add('medium');
+                    }
+                } else {
+                    bar.classList.remove('active', 'weak', 'medium');
+                }
+            });
+            
+            // 更新强度文本
+            const strengthTexts = ['非常弱', '弱', '一般', '强', '很强', '非常强'];
+            strengthText.textContent = strengthTexts[strength] || '';
+            
+            if (validation.valid) {
+                this.classList.remove('error');
+                this.classList.add('success');
+                passwordMsg.className = 'validation-message success';
+                passwordMsg.textContent = '✓ ' + validation.message;
+                passwordValid = true;
+            } else {
+                this.classList.remove('success');
+                this.classList.add('error');
+                passwordMsg.className = 'validation-message error';
+                passwordMsg.textContent = '✗ ' + validation.message;
+                passwordValid = false;
+            }
+            
+            // 如果确认密码已输入，重新验证
+            const confirmPassword = document.getElementById('confirm-password').value;
+            if (confirmPassword) {
+                validateConfirmPassword();
+            }
+        });
+
+        // 确认密码验证
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const confirmPasswordMsg = document.getElementById('confirm-password-msg');
+        
+        confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+        
+        function validateConfirmPassword() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            if (!confirmPassword) {
+                confirmPasswordInput.classList.remove('success', 'error');
+                confirmPasswordMsg.className = 'validation-message';
+                confirmPasswordMsg.textContent = '';
+                confirmPasswordValid = false;
+                return;
+            }
+            
+            if (password === confirmPassword) {
+                confirmPasswordInput.classList.remove('error');
+                confirmPasswordInput.classList.add('success');
+                confirmPasswordMsg.className = 'validation-message success';
+                confirmPasswordMsg.textContent = '✓ 密码一致';
+                confirmPasswordValid = true;
+            } else {
+                confirmPasswordInput.classList.remove('success');
+                confirmPasswordInput.classList.add('error');
+                confirmPasswordMsg.className = 'validation-message error';
+                confirmPasswordMsg.textContent = '✗ 两次密码不一致';
+                confirmPasswordValid = false;
+            }
+        }
+
+        // 表单提交
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nickname = nicknameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const btn = document.getElementById('register-btn');
+            
+            // 验证所有字段
+            if (!nickname) {
+                showMessage('请输入用户昵称', 'error');
+                nicknameInput.focus();
+                return;
+            }
+            
+            if (!nicknameValid) {
+                showMessage('昵称不可用或未验证', 'error');
+                nicknameInput.focus();
+                return;
+            }
+            
+            if (!email) {
+                showMessage('请输入邮箱地址', 'error');
+                emailInput.focus();
+                return;
+            }
+            
+            if (!emailValid) {
+                showMessage('邮箱不可用或未验证', 'error');
+                emailInput.focus();
+                return;
+            }
+            
+            if (!password) {
+                showMessage('请输入密码', 'error');
+                passwordInput.focus();
+                return;
+            }
+            
+            if (!passwordValid) {
+                showMessage('密码不符合要求', 'error');
+                passwordInput.focus();
+                return;
+            }
+            
+            if (!confirmPassword) {
+                showMessage('请确认密码', 'error');
+                confirmPasswordInput.focus();
+                return;
+            }
+            
+            if (!confirmPasswordValid) {
+                showMessage('两次密码不一致', 'error');
+                confirmPasswordInput.focus();
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 注册中...';
+                
+                const response = await AuthAPI.userRegister(nickname, password, email);
+                
+                if (response.errorCode === 0) {
+                    showMessage('注册成功！即将跳转到登录页面...', 'success');
+                    
+                    // 延迟跳转，让用户看到成功提示
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                } else {
+                    // 根据错误码显示不同的提示
+                    let errorMsg = '注册失败';
+                    switch (response.errorCode) {
+                        case 501:
+                            errorMsg = '昵称已被占用';
+                            break;
+                        case 502:
+                            errorMsg = '该邮箱已被注册';
+                            break;
+                        default:
+                            errorMsg = response.errorMsg || '注册失败';
+                    }
+                    showMessage(errorMsg, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> 注册';
+                }
+            } catch (error) {
+                console.error('注册失败:', error);
+                showMessage('注册失败，请检查网络连接', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> 注册';
+            }
+        });
+    </script>
+</body>
+</html>
+

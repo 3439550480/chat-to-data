@@ -104,8 +104,10 @@ void GatewayServiceImpl::bindRoutes(httplib::Server& server) {
     server.Post("/api/user/logout", [this](const httplib::Request& req, httplib::Response& res) {
         handleLogout(req, res);
     });
-    // 接口文档 2.2.9 定义为 POST（课件原版此处绑定为 server.Get，偏差记录见 CODING_SPEC.md 规则3）
-    server.Post("/api/user/info", [this](const httplib::Request& req, httplib::Response& res) {
+    // 官方前端 auth.js getUserInfo() 用 GET + query（requestId/sessionId/userId）调用此接口，
+    // handler 解析也按 req.has_param（GET 姿势）编写；此前按接口文档 2.2.9 改绑 POST
+    // 导致部署态前端用户信息 404 —— 前端是接口的真实消费者，绑定以前端为准（P4 修复）
+    server.Get("/api/user/info", [this](const httplib::Request& req, httplib::Response& res) {
         handleGetUserInfo(req, res);
     });
 

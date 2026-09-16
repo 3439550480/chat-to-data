@@ -1,0 +1,143 @@
+# ============================================================
+# Chat2Data 部署编排 —— 官方课件 compose 骨架 + 本地 Docker Desktop 甄别改造
+#
+# 与官方 compose 的差异（21 章甄别清单）：
+#   1. image: chat2data:1.0 —— 本地 docker build 产物（官方为阿里云仓库拉取）
+#   2. environment 仅 BIN_NAME + EXTRA_FLAGS（官方 CONF_NAME + envsubst 方案不适用，
+#      我们仅网关有 conf 机制，conf 已随镜像就位于 CWD）
+#   3. 网关 EXTRA_FLAGS 留空：全靠镜像内 /home/chat2Data/chat2Data.conf
+#      （listen_port=9000、中间件 dev-* 地址，与部署态一致，G-H6 实测可用）
+#   4. AI 服务 env_file: ../.env —— GLM 四件套复用 app/.env；
+#      envLoader 的 setenv 不覆盖已注入环境变量 → 注入即生效
+#   5. 端口 800x:900x —— 宿主 9000-9009 已被 dev-env-service 占用；
+#      容器内仍监听 900x，ETCD 注册 容器名:900x，服务互调走容器网络
+#   6. healthcheck：网关 curl /health（G-H6 已验证）；子服务 bash /dev/tcp 探端口
+#      （brpc 子服务无自定义 HTTP 探活端点，/dev/tcp 不依赖额外工具）
+#
+# 前置：external 网络 dev-environment_dev-network 由 bite-dev-environment
+# 的中间件 compose 提供（dev-mysql / dev-redis / dev-etcd / dev-tracker 在网）。
+# ============================================================
+
+services:
+  dev-gateway:
+    image: chat2data:1.0
+    container_name: chat2data-gateway
+    environment:
+      BIN_NAME: bin/GatewayService
+      # EXTRA_FLAGS 留空：网关全靠镜像内 chat2Data.conf
+      EXTRA_FLAGS: ""
+    ports:
+      - "8000:9000"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+  dev-user:
+    image: chat2data:1.0
+    container_name: chat2data-user
+    environment:
+      BIN_NAME: bin/UserService
+      # service_addr = 注册到 ETCD 的地址，必须是本容器网络名（网关按它转发）
+      EXTRA_FLAGS: "--service_addr=dev-user:9001"
+    ports:
+      - "8001:9001"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9001"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+  dev-notify:
+    image: chat2data:1.0
+    container_name: chat2data-notify
+    environment:
+      BIN_NAME: bin/NotifyService
+      EXTRA_FLAGS: "--service_addr=dev-notify:9002"
+    ports:
+      - "8002:9002"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9002"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+  dev-excel:
+    image: chat2data:1.0
+    container_name: chat2data-excel
+    environment:
+      BIN_NAME: bin/ExcelParserService
+      EXTRA_FLAGS: "--service_addr=dev-excel:9003"
+    ports:
+      - "8003:9003"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9003"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+  dev-file:
+    image: chat2data:1.0
+    container_name: chat2data-file
+    environment:
+      BIN_NAME: bin/FileService
+      EXTRA_FLAGS: "--service_addr=dev-file:9004"
+    ports:
+      - "8004:9004"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9004"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+  dev-db:
+    image: chat2data:1.0
+    container_name: chat2data-db
+    environment:
+      BIN_NAME: bin/DatabaseService
+      EXTRA_FLAGS: "--service_addr=dev-db:9005"
+    ports:
+      - "8005:9005"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9005"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+  dev-ai:
+    image: chat2data:1.0
+    container_name: chat2data-ai
+    environment:
+      BIN_NAME: bin/AIService
+      EXTRA_FLAGS: "--service_addr=dev-ai:9006"
+    # GLM 四件套（GLM_API_KEY / GLM_MODEL_NAME / GLM_BASE_URL / GLM_MODEL_DESC）
+    # 复用 app/.env，路径相对本 compose 文件所在目录
+    env_file:
+      - ../.env
+    ports:
+      - "8006:9006"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9006"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks: [chat2data-net]
+
+networks:
+  chat2data-net:
+    external: true
+    name: dev-environment_dev-network

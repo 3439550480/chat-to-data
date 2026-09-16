@@ -73,9 +73,9 @@ static void loadAppEnv() {
 int main(int argc, char* argv[]) {
     // 1. 解析 gflags 参数
     google::ParseCommandLineFlags(&argc, &argv, true);
-    // 2. 加载 .env（GLM_API_KEY/GLM_MODEL_NAME/GLM_BASE_URL/GLM_MODEL_DESC）
-    loadAppEnv();
-    // 3. 初始化日志器（★ 必须在 initModels 之前：SDK 内部日志依赖 bite::Logger）
+    // 2. 初始化日志器（★ 必须在 initModels 之前：SDK 内部日志依赖 bite::Logger；
+    //    ★ 必须在 loadAppEnv 之前：后者候选路径全落空时的 WRN 依赖已就绪的 logger，
+    //      否则部署态（容器内无 .env 文件）空指针段错误 EXIT139 —— P4-3 部署缺陷）
     bitelog::log_settings logSettings;
     logSettings.async = FLAGS_log_async;
     logSettings.level = FLAGS_log_level;
@@ -85,6 +85,10 @@ int main(int argc, char* argv[]) {
     bite::Logger::initLogger("aiService", FLAGS_log_path,
                              (spdlog::level::level_enum)FLAGS_log_level);
     INF("Loggers initialized (bitelog + sdk logger)");
+    // 3. 加载 .env（GLM_API_KEY/GLM_MODEL_NAME/GLM_BASE_URL/GLM_MODEL_DESC；
+    //    候选路径全落空时仅 WRN 提示，随后 getEnvOrDefault 走进程环境变量——
+    //    部署态 compose env_file 注入即兜底，P4 治本：顺序对调后不再段错误）
+    loadAppEnv();
     // 4. 注册信号处理函数
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 
 #include <bite_scaffold/log.h>
@@ -182,6 +183,38 @@ void GatewayServerBuilder::initServiceDiscovery() {
     // 步骤4：创建SvcWatcher实例
     // SvcWatcher负责连接ETCD注册中心，监控服务节点的上下线事件
     _serviceWatcher = std::make_shared<bitesvc::SvcWatcher>(_etcdAddr, onlineCallback, offlineCallback);
+
+    // 步骤4.5：初始节点同步（P4 GW7 治本）
+    // 问题：SvcWatcher::watch() 是纯事件监听（etcd::Watcher 无初始全量拉取），
+    //   watch 流建立之前已注册在 ETCD 的节点对网关不可见。全量部署（7 容器同时启动）
+    //   时子服务注册事件可能早于网关 watch 就绪 → 节点桶为空 → 转发 503，
+    //   且注册方租约续约不产生 put 事件，网关会一直等不到（实测需重启网关才恢复）。
+    // 方案：启动 watch 前先用 etcd GET / 前缀拉取现存节点，逐个走 onlineCallback
+    //   等价于「事件重放」，把桶补齐；此后增量变更仍由 watch 正常推送。
+    // 窗口说明：ls 完成到 watch 流建立之间存在毫秒级窗口，窗口内的新注册理论上仍会漏；
+    //   但子服务注册均在容器启动数秒后发生，远晚于该窗口，实际安全。
+    {
+        etcd::Client etcdClient(_etcdAddr);
+        bitesvc::wait_for_connection(etcdClient);
+        etcd::Response resp = etcdClient.ls("/").get();
+        if (resp.is_ok()) {
+            for (const auto& value : resp.values()) {
+                // key 形如 /UserService/<instanceId>，提取服务名并只回填当前 watch 列表内的服务
+                const std::string& key = value.key();
+                size_t pos = key.find('/', 1);
+                if (pos == std::string::npos) {
+                    continue;
+                }
+                std::string serviceName = key.substr(1, pos - 1);
+                if (std::find(_serviceNames.begin(), _serviceNames.end(), serviceName) == _serviceNames.end()) {
+                    continue;
+                }
+                onlineCallback(serviceName, value.as_string());
+            }
+        } else {
+            WRN("Initial node sync failed: {}", resp.error_message());
+        }
+    }
 
     // 步骤5：启动独立的监控线程
     // watch()方法会阻塞当前线程，因此需要在新线程中运行
